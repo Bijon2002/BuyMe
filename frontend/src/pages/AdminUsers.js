@@ -25,7 +25,7 @@ export default function AdminUsers() {
   // Change role (user <-> admin)
   const handleRoleChange = async (id, role) => {
     try {
-      await API.patch(`/admin/users/${id}/role`, { role });
+      await API.patch(`/admin/users/${id}`, { role });
       fetchUsers();
     } catch (error) {
       console.error('Role update failed', error);
