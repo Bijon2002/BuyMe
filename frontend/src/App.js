@@ -14,6 +14,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import UserDashboard from './pages/UserDashboard'; // Create this too
 import AdminRoute from './components/AdminRoute';
 import AdminUsers from './pages/AdminUsers'; // New admin users management page
+import AdminProducts from './pages/AdminProducts'; // New admin products management page
 
 import ProtectedRoute from './components/ProtectedRoute'; // Your existing
 
@@ -45,6 +46,15 @@ function AppContent() {
             <UserDashboard />
           </ProtectedRoute>
         } />
+
+        <Route path="/admin/products" element={
+  <ProtectedRoute>
+    <AdminRoute>
+      <AdminProducts />
+    </AdminRoute>
+  </ProtectedRoute>
+} />
+
         
         {/* Admin Routes - Double Protection */}
         <Route path="/admin/dashboard" element={

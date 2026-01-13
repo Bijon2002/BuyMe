@@ -188,7 +188,7 @@ export default function Register() {
       
       {/* Debug info - remove in production */}
       <div className="mt-3 text-center small text-muted">
-        <p>API Base URL: {process.env.REACT_APP_API_URL || 'Not set'}</p>
+        {/* <p>API Base URL: {process.env.REACT_APP_API_URL || 'Not set'}</p> */}
         <button 
           className="btn btn-sm btn-outline-secondary"
           onClick={() => {
@@ -197,7 +197,7 @@ export default function Register() {
             console.log('Refresh Token:', localStorage.getItem('refreshToken'));
           }}
         >
-          Debug Info
+          {/* Debug Info */}
         </button>
       </div>
     </div>

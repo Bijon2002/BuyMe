@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import API from '../api/axiosConfig';
 import './AdminDashboard.css';
+import { toast } from 'react-toastify';
+
 
 export default function AdminUsers() {
   const [users, setUsers] = useState([]);
@@ -23,26 +25,46 @@ export default function AdminUsers() {
   }, []);
 
   // Change role (user <-> admin)
-  const handleRoleChange = async (id, role) => {
-    try {
-      await API.patch(`/admin/users/${id}`, { role });
-      fetchUsers();
-    } catch (error) {
-      console.error('Role update failed', error);
-    }
-  };
+  // const handleRoleChange = async (id, role) => {
+  //   try {
+  //     await API.patch(`/admin/users/${id}`, { role });
+  //     fetchUsers();
+  //   } catch (error) {
+  //     console.error('Role update failed', error);
+  //   }
+  // };
 
   // Deactivate user (soft delete)
-  const handleDeactivate = async (id) => {
-    if (!window.confirm('Deactivate this user?')) return;
+  // Toggle user status (Active <-> Deactivated)
+// Toggle user status (Active <-> Deactivated)
+const handleToggleStatus = async (id, currentStatus) => {
+  const action = currentStatus ? 'Deactivate' : 'Activate';
 
-    try {
-      await API.delete(`/admin/users/${id}`);
-      fetchUsers();
-    } catch (error) {
-      console.error('Deactivate failed', error);
-    }
-  };
+  // Optional: ask confirmation via toast (no alert box)
+  if (!window.confirm(`${action} this user?`)) return;  // keep simple for now
+
+  try {
+    await API.put(`/admin/users/${id}/status`, {
+      isActive: !currentStatus  // flip the status
+    });
+
+    fetchUsers(); // refresh table
+
+    // Show success toast
+    toast.success(`User ${action}d successfully!`, {
+      position: "top-center",
+      autoClose: 2000, // 2 seconds
+    });
+  } catch (error) {
+    toast.error(`Failed to ${action} user`, {
+      position: "top-center",
+      autoClose: 2000,
+    });
+    console.error('Status toggle failed', error);
+  }
+};
+
+
 
   if (loading) {
     return <p className="loading-text">Loading users...</p>;
@@ -88,14 +110,16 @@ export default function AdminUsers() {
                   </span>
                 </td>
 
-                <td>
-                  <button
-                    className="danger-btn"
-                    onClick={() => handleDeactivate(user._id)}
-                  >
-                    Deactivate
-                  </button>
-                </td>
+    <td>
+  <button
+    className={`danger-btn ${user.isActive ? '' : 'activate-btn'}`}
+    onClick={() => handleToggleStatus(user._id, user.isActive)}
+  >
+    {user.isActive ? 'Deactivate' : 'Activate'}
+  </button>
+</td>
+
+
               </tr>
             ))}
           </tbody>

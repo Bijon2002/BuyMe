@@ -177,7 +177,7 @@ exports.updateProduct = async (req, res) => {
         new: true, // Return updated document
         runValidators: true // Run model validators
       }
-    ).populate('createdBy', 'name email');
+    )
     
     res.status(200).json({
       success: true,

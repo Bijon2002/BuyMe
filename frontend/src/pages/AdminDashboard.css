@@ -531,3 +531,8 @@
   color: #666;
   margin: 0;
 }
+
+.activate-btn {
+  background-color: #4caf50;
+  color: white;
+}

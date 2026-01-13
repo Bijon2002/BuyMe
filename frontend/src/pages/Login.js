@@ -180,13 +180,13 @@ export default function Login() {
           </Link>
         </div>
         
-        <div className="text-center mt-3">
+        {/* <div className="text-center mt-3">
           <small className="text-muted">
             Demo Credentials:<br />
             Email: test@example.com | Password: 123456<br />
             <strong>Admin:</strong> admin@example.com | Password: Admin@123
           </small>
-        </div>
+        </div> */}
       </form>
     </div>
   );
