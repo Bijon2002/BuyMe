@@ -514,3 +514,20 @@
 .activity-section {
   animation: fadeIn 0.5s ease-out 0.3s both;
 }
+/* Content Placeholder */
+.content-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  background: white;
+  border-radius: 12px;
+  padding: 40px;
+  text-align: center;
+}
+
+.content-placeholder h3 {
+  font-size: 24px;
+  color: #666;
+  margin: 0;
+}

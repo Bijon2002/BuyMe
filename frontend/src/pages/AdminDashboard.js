@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../api/axiosConfig';
+import AdminUsers from './AdminUsers';
+import AdminProducts from './AdminProducts';
+import AdminOrders from './AdminOrders';
 import './AdminDashboard.css';
 
 export default function AdminDashboard() {
@@ -107,14 +110,7 @@ export default function AdminDashboard() {
               <button
                 key={item.id}
                 className={`nav-btn ${activeTab === item.id ? 'active' : ''}`}
-                onClick={() => {
-  if (item.id === 'users') {
-    navigate('/admin/users');
-  } else {
-    setActiveTab(item.id);
-  }
-}}
-
+                onClick={() => setActiveTab(item.id)}
               >
                 <span className="nav-icon">{item.icon}</span>
                 <span className="nav-label">{item.label}</span>
@@ -126,100 +122,109 @@ export default function AdminDashboard() {
 
         {/* Main Dashboard */}
         <main className="dashboard-main">
-          {/* Hero Section */}
-          <div className="hero-section">
-            <div className="hero-content">
-              <h2 className="hero-title">Welcome Back, {user?.name?.split(' ')[0]}!</h2>
-              <p className="hero-subtitle">Here's your business snapshot</p>
-            </div>
-            <div className="hero-date">{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
-          </div>
-
-          {/* Stats Row */}
-          <div className="stats-row">
-            <div className="stat-box primary">
-              <div className="stat-header">
-                <span className="stat-icon">●</span>
-                <span className="stat-growth">+12%</span>
+          {activeTab === 'dashboard' && (
+            <>
+              {/* Hero Section */}
+              <div className="hero-section">
+                <div className="hero-content">
+                  <h2 className="hero-title">Welcome Back, {user?.name?.split(' ')[0]}!</h2>
+                  <p className="hero-subtitle">Here's your business snapshot</p>
+                </div>
+                <div className="hero-date">{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
               </div>
-              <h3 className="stat-number">{stats.totalUsers}</h3>
-              <p className="stat-label">Total Users</p>
-            </div>
 
-            <div className="stat-box success">
-              <div className="stat-header">
-                <span className="stat-icon">●</span>
-                <span className="stat-growth">+5%</span>
+              {/* Stats Row */}
+              <div className="stats-row">
+                <div className="stat-box primary">
+                  <div className="stat-header">
+                    <span className="stat-icon">●</span>
+                    <span className="stat-growth">+12%</span>
+                  </div>
+                  <h3 className="stat-number">{stats.totalUsers}</h3>
+                  <p className="stat-label">Total Users</p>
+                </div>
+
+                <div className="stat-box success">
+                  <div className="stat-header">
+                    <span className="stat-icon">●</span>
+                    <span className="stat-growth">+5%</span>
+                  </div>
+                  <h3 className="stat-number">{stats.totalProducts}</h3>
+                  <p className="stat-label">Products</p>
+                </div>
+
+                <div className="stat-box warning">
+                  <div className="stat-header">
+                    <span className="stat-icon">●</span>
+                    <span className="stat-growth">+23%</span>
+                  </div>
+                  <h3 className="stat-number">{stats.totalOrders}</h3>
+                  <p className="stat-label">Orders</p>
+                </div>
+
+                <div className="stat-box revenue">
+                  <div className="stat-header">
+                    <span className="stat-icon">●</span>
+                    <span className="stat-growth">+18%</span>
+                  </div>
+                  <h3 className="stat-number">$12.4K</h3>
+                  <p className="stat-label">Revenue</p>
+                </div>
               </div>
-              <h3 className="stat-number">{stats.totalProducts}</h3>
-              <p className="stat-label">Products</p>
-            </div>
 
-            <div className="stat-box warning">
-              <div className="stat-header">
-                <span className="stat-icon">●</span>
-                <span className="stat-growth">+23%</span>
+              {/* Activity Section */}
+              <div className="activity-section">
+                <div className="section-top">
+                  <div>
+                    <h3 className="section-title">Recent Activity</h3>
+                    <p className="section-desc">Latest user registrations</p>
+                  </div>
+                  <button className="btn-view-all">View All →</button>
+                </div>
+
+                <div className="activity-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {stats.recentUsers.map((user, idx) => (
+                        <tr key={idx}>
+                          <td>
+                            <div className="user-display">
+                              <div className="user-circle">{user.name.charAt(0)}</div>
+                              <span className="user-text">{user.name}</span>
+                            </div>
+                          </td>
+                          <td className="email-text">{user.email}</td>
+                          <td className="date-text">{user.joined}</td>
+                          <td>
+                            <span className={`status-chip ${user.status}`}>
+                              {user.status}
+                            </span>
+                          </td>
+                          <td>
+                            <button className="action-menu">⋮</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-              <h3 className="stat-number">{stats.totalOrders}</h3>
-              <p className="stat-label">Orders</p>
-            </div>
-
-            <div className="stat-box revenue">
-              <div className="stat-header">
-                <span className="stat-icon">●</span>
-                <span className="stat-growth">+18%</span>
-              </div>
-              <h3 className="stat-number">$12.4K</h3>
-              <p className="stat-label">Revenue</p>
-            </div>
-          </div>
-
-          {/* Activity Section */}
-          <div className="activity-section">
-            <div className="section-top">
-              <div>
-                <h3 className="section-title">Recent Activity</h3>
-                <p className="section-desc">Latest user registrations</p>
-              </div>
-              <button className="btn-view-all">View All →</button>
-            </div>
-
-            <div className="activity-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>User</th>
-                    <th>Email</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {stats.recentUsers.map((user, idx) => (
-                    <tr key={idx}>
-                      <td>
-                        <div className="user-display">
-                          <div className="user-circle">{user.name.charAt(0)}</div>
-                          <span className="user-text">{user.name}</span>
-                        </div>
-                      </td>
-                      <td className="email-text">{user.email}</td>
-                      <td className="date-text">{user.joined}</td>
-                      <td>
-                        <span className={`status-chip ${user.status}`}>
-                          {user.status}
-                        </span>
-                      </td>
-                      <td>
-                        <button className="action-menu">⋮</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+            </>
+          )}
+          {activeTab === 'users' && <AdminUsers />}
+          {activeTab === 'products' && <AdminProducts />}
+          {activeTab === 'orders' && <AdminOrders />}
+          {activeTab === 'analytics' && <div className="content-placeholder"><h3>Analytics Coming Soon</h3></div>}
+          {activeTab === 'settings' && <div className="content-placeholder"><h3>Settings Coming Soon</h3></div>}
         </main>
       </div>
     </div>

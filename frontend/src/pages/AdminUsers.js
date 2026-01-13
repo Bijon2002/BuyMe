@@ -58,7 +58,7 @@ export default function AdminUsers() {
             <tr>
               <th>Name</th>
               <th>Email</th>
-              <th>Role</th>
+              {/* <th>Role</th> */}
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -70,7 +70,7 @@ export default function AdminUsers() {
                 <td>{user.name}</td>
                 <td className="email-text">{user.email}</td>
 
-                <td>
+                {/* <td>
                   <select
                     value={user.role}
                     onChange={(e) =>
@@ -80,10 +80,10 @@ export default function AdminUsers() {
                     <option value="user">User</option>
                     <option value="admin">Admin</option>
                   </select>
-                </td>
+                </td> */}
 
                 <td>
-                  <span className={`status-chip ${user.isActive ? 'active' : 'blocked'}`}>
+                  <span className={`status-chip ${user.isActive ? 'active' : 'blocked'}`} >
                     {user.isActive ? 'Active' : 'Deactivated'}
                   </span>
                 </td>
