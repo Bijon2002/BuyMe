@@ -3,7 +3,8 @@ import Search from "./Search";
 
 export default function Header({ cartItems }) {
 
-  const role = localStorage.getItem("role"); // "user" or "admin"
+  const role = localStorage.getItem("role")?.toLowerCase();
+
 
 
   

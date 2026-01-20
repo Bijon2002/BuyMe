@@ -99,95 +99,90 @@ export default function Login() {
   }, []);
 
   return (
-    <div className="wrapper">
-      <form onSubmit={submitHandler} className="shadow rounded bg-white p-4">
-        <h2 className="mb-4 text-center" style={{ color: '#73152e' }}>Login to Your Account</h2>
-        
-        <div className="form-group mb-3">
-          <label className="form-label">Email Address *</label>
-          <input
-            type="email"
-            name="email"
-            className="form-control"
-            placeholder="Enter your email"
-            value={form.email}
-            onChange={handleChange}
-            required
-            disabled={loading}
-          />
+    <div className="auth-page">
+      <div className="auth-card">
+        <div className="auth-header">
+          <p className="auth-kicker">Welcome back</p>
+          <h2>Login to your account</h2>
+          <p className="auth-subtext">Access your orders, wishlist, and personalized recommendations.</p>
         </div>
-        
-        <div className="form-group mb-3">
-          <label className="form-label">Password *</label>
-          <input
-            type="password"
-            name="password"
-            className="form-control"
-            placeholder="Enter your password"
-            value={form.password}
-            onChange={handleChange}
-            required
-            disabled={loading}
-          />
-        </div>
-        
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <div className="form-check">
+
+        <form onSubmit={submitHandler}>
+          <div className="form-group mb-3">
+            <label className="form-label">Email address *</label>
             <input
-              type="checkbox"
-              className="form-check-input"
-              id="rememberMe"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
+              type="email"
+              name="email"
+              className="form-control"
+              placeholder="you@example.com"
+              value={form.email}
+              onChange={handleChange}
+              required
               disabled={loading}
             />
-            <label className="form-check-label" htmlFor="rememberMe">
-              Remember me
-            </label>
           </div>
-          
-          <Link 
-            to="/forgot-password" 
-            style={{ color: '#73152e', textDecoration: 'none', fontSize: '0.9rem' }}
+
+          <div className="form-group mb-3">
+            <label className="form-label">Password *</label>
+            <input
+              type="password"
+              name="password"
+              className="form-control"
+              placeholder="Enter your password"
+              value={form.password}
+              onChange={handleChange}
+              required
+              disabled={loading}
+            />
+          </div>
+
+          <div className="auth-inline mb-4">
+            <label className="form-check mb-0">
+              <input
+                type="checkbox"
+                className="form-check-input"
+                id="rememberMe"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                disabled={loading}
+              />
+              <span className="form-check-label">Remember me</span>
+            </label>
+
+            <Link to="/forgot-password" className="auth-link">
+              Forgot password?
+            </Link>
+          </div>
+
+          <button
+            type="submit"
+            className="btn auth-submit w-100"
+            disabled={loading}
           >
-            Forgot Password?
-          </Link>
-        </div>
-        
-        <button 
-          type="submit" 
-          className="btn btn-primary w-100 py-2"
-          disabled={loading}
-          style={{ backgroundColor: '#73152e', borderColor: '#73152e' }}
-        >
-          {loading ? (
-            <>
-              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-              Logging in...
-            </>
-          ) : (
-            "Login"
-          )}
-        </button>
-        
-        <div className="text-center mt-4">
-          <span className="text-muted">Don't have an account?{" "}</span>
-          <Link 
-            to="/register" 
-            style={{ color: '#73152e', textDecoration: 'none' }}
-          >
-            <strong>Create Account</strong>
-          </Link>
-        </div>
-        
-        {/* <div className="text-center mt-3">
-          <small className="text-muted">
-            Demo Credentials:<br />
-            Email: test@example.com | Password: 123456<br />
-            <strong>Admin:</strong> admin@example.com | Password: Admin@123
-          </small>
-        </div> */}
-      </form>
+            {loading ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Logging in...
+              </>
+            ) : (
+              "Login"
+            )}
+          </button>
+
+          <div className="auth-footer">
+            <span className="text-muted">New here?</span>
+            <Link to="/register" className="auth-link fw-semibold">
+              Create an account
+            </Link>
+          </div>
+
+          <div className="auth-perks">
+            <div className="perk-chip">Track orders in real time</div>
+            <div className="perk-chip">Save multiple addresses</div>
+            <div className="perk-chip">Members-only offers</div>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

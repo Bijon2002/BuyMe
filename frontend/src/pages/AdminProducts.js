@@ -6,6 +6,9 @@ import { toast } from 'react-toastify';
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+ 
+
+
 
   // Modal state
   const [editProduct, setEditProduct] = useState(null);
@@ -19,6 +22,7 @@ export default function AdminProducts() {
     description: '',
     images: [] // array of strings (URLs or base64)
   });
+   const [imagePreviews, setImagePreviews] = useState([]);
 
   // Fetch all products
   const fetchProducts = async () => {
@@ -84,11 +88,16 @@ export default function AdminProducts() {
   };
 
   // Handle image upload
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    const urls = files.map(file => URL.createObjectURL(file)); // just strings
-    setFormData({ ...formData, images: urls });
-  };
+const handleImageUpload = (e) => {
+  const files = Array.from(e.target.files);
+
+  setFormData({ ...formData, images: files });
+
+  const previews = files.map(file => URL.createObjectURL(file));
+  setImagePreviews(previews);
+};
+
+
 
   // Submit add product
   const handleAdd = async (e) => {

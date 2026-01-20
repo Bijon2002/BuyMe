@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import API from "../api/axiosConfig";  // Updated import
 
 export default function Register() {
@@ -83,122 +83,110 @@ export default function Register() {
   };
 
   return (
-    <div className="wrapper">
-      <form onSubmit={submitHandler} className="shadow rounded bg-white p-4">
-        <h2 className="mb-4 text-center" style={{ color: '#73152e' }}>Create Account</h2>
-        
-        <div className="form-group mb-3">
-          <label className="form-label">Full Name *</label>
-          <input 
-            name="name" 
-            className="form-control" 
-            placeholder="Enter your name" 
-            value={form.name}
-            onChange={changeHandler} 
-            required 
+    <div className="auth-page">
+      <div className="auth-card">
+        <div className="auth-header">
+          <p className="auth-kicker">Join the community</p>
+          <h2>Create your account</h2>
+          <p className="auth-subtext">Checkout faster, track orders, and get personalized deals.</p>
+        </div>
+
+        <form onSubmit={submitHandler}>
+          <div className="form-group mb-3">
+            <label className="form-label">Full name *</label>
+            <input 
+              name="name" 
+              className="form-control" 
+              placeholder="Enter your name" 
+              value={form.name}
+              onChange={changeHandler} 
+              required 
+              disabled={loading}
+            />
+          </div>
+          
+          <div className="form-group mb-3">
+            <label className="form-label">Email address *</label>
+            <input 
+              name="email" 
+              type="email" 
+              className="form-control" 
+              placeholder="you@example.com" 
+              value={form.email}
+              onChange={changeHandler} 
+              required 
+              disabled={loading}
+            />
+          </div>
+          
+          <div className="form-group mb-3">
+            <label className="form-label">Password *</label>
+            <input 
+              name="password" 
+              type="password" 
+              className="form-control" 
+              placeholder="Create a password (min. 6 characters)" 
+              value={form.password}
+              onChange={changeHandler} 
+              required 
+              disabled={loading}
+            />
+            <small className="text-muted">Minimum 6 characters</small>
+          </div>
+          
+          <div className="form-group mb-3">
+            <label className="form-label">Date of birth</label>
+            <input 
+              name="dob" 
+              type="date" 
+              className="form-control" 
+              value={form.dob}
+              onChange={changeHandler} 
+              disabled={loading}
+            />
+          </div>
+          
+          <div className="form-group mb-3">
+            <label className="form-label">Phone number</label>
+            <input 
+              name="phone" 
+              type="tel" 
+              className="form-control" 
+              placeholder="Enter your phone number" 
+              value={form.phone}
+              onChange={changeHandler} 
+              disabled={loading}
+            />
+          </div>
+          
+          <button 
+            type="submit" 
+            className="btn auth-submit w-100"
             disabled={loading}
-          />
-        </div>
-        
-        <div className="form-group mb-3">
-          <label className="form-label">Email Address *</label>
-          <input 
-            name="email" 
-            type="email" 
-            className="form-control" 
-            placeholder="Enter your email" 
-            value={form.email}
-            onChange={changeHandler} 
-            required 
-            disabled={loading}
-          />
-        </div>
-        
-        <div className="form-group mb-3">
-          <label className="form-label">Password *</label>
-          <input 
-            name="password" 
-            type="password" 
-            className="form-control" 
-            placeholder="Create a password (min. 6 characters)" 
-            value={form.password}
-            onChange={changeHandler} 
-            required 
-            disabled={loading}
-          />
-          <small className="text-muted">Minimum 6 characters</small>
-        </div>
-        
-        <div className="form-group mb-3">
-          <label className="form-label">Date of Birth</label>
-          <input 
-            name="dob" 
-            type="date" 
-            className="form-control" 
-            value={form.dob}
-            onChange={changeHandler} 
-            disabled={loading}
-          />
-        </div>
-        
-        <div className="form-group mb-3">
-          <label className="form-label">Phone Number</label>
-          <input 
-            name="phone" 
-            type="tel" 
-            className="form-control" 
-            placeholder="Enter your phone number" 
-            value={form.phone}
-            onChange={changeHandler} 
-            disabled={loading}
-          />
-        </div>
-        
-        <button 
-          type="submit" 
-          className="btn btn-primary w-100 py-2"
-          disabled={loading}
-          style={{ backgroundColor: '#73152e', borderColor: '#73152e' }}
-        >
-          {loading ? (
-            <>
-              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-              Creating Account...
-            </>
-          ) : (
-            "Register Now"
-          )}
-        </button>
-        
-        <div className="text-center mt-3">
-          <span className="text-muted">
-            Already have an account?{" "}
-            <a href="/login" style={{ color: '#73152e', textDecoration: 'none' }}>
-              <strong>Login here</strong>
-            </a>
-          </span>
-        </div>
-        
-        <div className="mt-3 text-center">
-          <small className="text-muted">
-            By registering, you agree to our Terms & Privacy Policy
-          </small>
-        </div>
-      </form>
-      
-      {/* Debug info - remove in production */}
-      <div className="mt-3 text-center small text-muted">
-        {/* <p>API Base URL: {process.env.REACT_APP_API_URL || 'Not set'}</p> */}
-        <button 
-          className="btn btn-sm btn-outline-secondary"
-          onClick={() => {
-            console.log('Current form:', form);
-            console.log('Access Token:', localStorage.getItem('accessToken'));
-            console.log('Refresh Token:', localStorage.getItem('refreshToken'));
-          }}
-        >
-          {/* Debug Info */}
-        </button>
+          >
+            {loading ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Creating account...
+              </>
+            ) : (
+              "Register now"
+            )}
+          </button>
+          
+          <div className="auth-footer">
+            <span className="text-muted">Already have an account?</span>
+            <Link to="/login" className="auth-link fw-semibold">
+              Login here
+            </Link>
+          </div>
+
+          <div className="auth-perks">
+            <div className="perk-chip">Exclusive member pricing</div>
+            <div className="perk-chip">Easy returns & support</div>
+            <div className="perk-chip">Checkout in one tap</div>
+          </div>
+        </form>
       </div>
     </div>
   );
