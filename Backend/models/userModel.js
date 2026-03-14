@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
   profilePic: { type: String, default: null },
+  favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
   dob: { type: Date },
   phone: { type: String },
   isActive: { type: Boolean, default: true },

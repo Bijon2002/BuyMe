@@ -1,0 +1,221 @@
+/* UserDashboard.css */
+
+.admin-dashboard-container {
+    background: #f4f6f8;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Add a subtle animated gradient orb in the background for a premium feel */
+.admin-dashboard-container::before {
+    content: '';
+    position: absolute;
+    top: -20%;
+    right: -10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(115, 21, 46, 0.08) 0%, rgba(255,255,255,0) 70%);
+    border-radius: 50%;
+    animation: pulseOrb 8s infinite alternate ease-in-out;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes pulseOrb {
+    0% { transform: scale(1) translate(0, 0); opacity: 0.5; }
+    100% { transform: scale(1.1) translate(-20px, 20px); opacity: 1; }
+}
+
+.max-w-7xl {
+    max-width: 1000px; /* narrowed for a more focused profile view */
+    position: relative;
+    z-index: 1;
+}
+
+/* Banner Layout */
+.user-profile-header {
+    background: white;
+    border-radius: 20px;
+    overflow: visible; /* to allow avatar to pop out if needed, though we will keep it contained mostly */
+    margin-top: 2rem;
+}
+
+.profile-banner {
+    height: 200px;
+    background: linear-gradient(135deg, rgba(115, 21, 46, 0.9) 0%, rgba(254, 189, 105, 0.8) 100%), url('https://www.transparenttextures.com/patterns/cubes.png');
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    width: 100%;
+}
+
+.profile-avatar-wrapper {
+    margin-top: -75px; /* pulls avatar up into the banner */
+    padding: 6px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.profile-edit-btn {
+    bottom: 5px;
+    right: 5px;
+    padding: 0.5rem;
+    border-radius: 50%;
+    cursor: pointer;
+    line-height: 1;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    border: 3px solid white;
+}
+
+/* Horizontal Tabs */
+.profile-tabs {
+    border-top: 1px solid rgba(0,0,0,0.05);
+    padding-top: 1rem;
+    margin-top: 2rem;
+}
+
+.profile-tab-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 999px;
+    color: var(--text-muted);
+    font-weight: 700;
+    transition: all 0.3s ease;
+    border: none;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.profile-tab-btn i {
+    font-size: 1.1rem;
+    transition: transform 0.3s ease;
+}
+
+.profile-tab-btn:hover {
+    color: var(--primary);
+    background: rgba(115, 21, 46, 0.05);
+}
+
+.profile-tab-btn.active {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 4px 15px rgba(115, 21, 46, 0.3);
+}
+
+.profile-tab-btn.active i {
+    transform: scale(1.2);
+}
+
+/* Stats Cards */
+.stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    border: 1px solid rgba(0,0,0,0.02);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(115, 21, 46, 0.1);
+    border-color: rgba(115, 21, 46, 0.1);
+}
+
+.stat-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.stat-card:hover .stat-icon {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.stat-title {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--text);
+    margin: 0;
+}
+
+/* Table Animations */
+@keyframes fadeInRow {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.fadeInRow {
+    animation: fadeInRow 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    opacity: 0;
+}
+
+.table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(115, 21, 46, 0.02) !important;
+    transform: scale(1.01);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border-radius: 12px;
+    position: relative;
+    z-index: 10;
+}
+
+.table tbody tr td {
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    padding: 1.25rem 1rem;
+    vertical-align: middle;
+}
+
+.table thead th {
+    border-bottom: 2px solid rgba(0,0,0,0.1);
+    padding: 1rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+}
+
+/* Favorite Item Styling */
+.favorite-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+    border: 1px solid rgba(0,0,0,0.02);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.favorite-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(115, 21, 46, 0.1);
+}
+
+.favorite-card:hover .danger-btn {
+    transform: scale(1.1);
+}

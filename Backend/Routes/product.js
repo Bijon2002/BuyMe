@@ -12,18 +12,33 @@ const {
   deleteReview
 } = require('../Controller/productController');
 
+const multer = require('multer');
+const path = require('path');
+
+// Multer Config for file storage
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/')
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname))
+  }
+});
+const upload = multer({ storage: storage });
+
 // Public routes
-router.get('/', getProducts); // GET /api/products
-router.get('/:id', getSingleProducts); // GET /api/products/:id
-router.get('/:id/reviews', getProductReviews); // GET /api/products/:id/reviews
+router.get('/', getProducts); 
+router.get('/settings', require('../Controller/settingController').getSettings);
+router.get('/:id', getSingleProducts);
+router.get('/:id/reviews', getProductReviews);
 
 // Protected routes (require login)
-router.post('/:id/reviews', isAuthenticated, createProductReview); // POST /api/products/:id/reviews
-router.delete('/:id/reviews', isAuthenticated, deleteReview); // DELETE /api/products/:id/reviews
+router.post('/:id/reviews', isAuthenticated, createProductReview);
+router.delete('/:id/reviews', isAuthenticated, deleteReview);
 
-// Admin-only routes
-router.post('/', isAuthenticated, isAdmin, addProduct); // POST /api/products
-router.put('/:id', isAuthenticated, isAdmin, updateProduct); // PUT /api/products/:id
-router.delete('/:id', isAuthenticated, isAdmin, deleteProduct); // DELETE /api/products/:id
+// Admin-only routes with Image Upload support
+router.post('/', isAuthenticated, isAdmin, upload.array('images'), addProduct);
+router.put('/:id', isAuthenticated, isAdmin, upload.array('images'), updateProduct);
+router.delete('/:id', isAuthenticated, isAdmin, deleteProduct);
 
 module.exports = router;

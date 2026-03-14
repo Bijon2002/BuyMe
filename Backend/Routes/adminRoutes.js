@@ -85,4 +85,56 @@ router.put('/users/:id/status', isAuthenticated, isAdmin, async (req, res) => {
   }
 });
 
+// @desc    Get Dashboard Stats (Admin only)
+// @route   GET /api/v1/admin/stats
+// @access  Private/Admin
+router.get('/stats', isAuthenticated, isAdmin, async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+    const totalProducts = await require('../models/productModel').countDocuments();
+    const orders = await require('../models/orderModel').find();
+    
+    const totalOrders = orders.length;
+    const revenue = orders.reduce((acc, order) => acc + (order.amount || 0), 0);
+    
+    // Recent 5 users
+    const recentUsers = await User.find({}).sort({ createdAt: -1 }).limit(5).select('-password');
+
+    res.json({
+      success: true,
+      stats: {
+        totalUsers,
+        totalProducts,
+        totalOrders,
+        revenue,
+        recentUsers
+      }
+    });
+  } catch (error) {
+    console.error('Stats error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// Settings Logic
+const settingController = require('../Controller/settingController');
+const multer = require('multer');
+const path = require('path');
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/')
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname)
+  }
+});
+const upload = multer({ storage: storage });
+
+router.get('/settings', isAuthenticated, isAdmin, settingController.getSettings);
+router.put('/settings', isAuthenticated, isAdmin, upload.fields([
+  { name: 'logo', maxCount: 1 },
+  { name: 'carousel_images' }
+]), settingController.updateSettings);
+
 module.exports = router;

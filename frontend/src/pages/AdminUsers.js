@@ -66,9 +66,11 @@ const handleToggleStatus = async (id, currentStatus) => {
 
 
 
-  if (loading) {
-    return <p className="loading-text">Loading users...</p>;
-  }
+  if (loading) return (
+    <div className="loading-container">
+      <img src="/images/loader.gif" alt="Loading..." className="loader-img" />
+    </div>
+  );
 
   return (
     <div className="admin-page">

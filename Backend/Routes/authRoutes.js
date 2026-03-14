@@ -5,7 +5,8 @@ const {
   getUserProfile,
   updateUserProfile,
   refreshToken,
-  logout
+  logout,
+  toggleFavorite
 } = require('../Controller/authController');
 const { isAuthenticated } = require('../middleware/authMiddleware');
 const router = express.Router();
@@ -18,7 +19,21 @@ router.post('/logout', logout);
 
 // Protected routes (require authentication)
 router.get('/me', isAuthenticated, getUserProfile);      // Get user profile
-router.put('/profile', isAuthenticated, updateUserProfile); // Update profile
+
+const multer = require('multer');
+const path = require('path');
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/')
+  },
+  filename: function (req, file, cb) {
+    cb(null, 'profile-' + Date.now() + path.extname(file.originalname))
+  }
+});
+const upload = multer({ storage: storage });
+
+router.put('/profile', isAuthenticated, upload.single('profilePic'), updateUserProfile); // Update profile
+router.post('/favorites/:productId', isAuthenticated, toggleFavorite);
 
 // Test route
 router.get('/test', (req, res) => res.json({ 

@@ -1,10 +1,31 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import API from '../api/axiosConfig';
 import AdminUsers from './AdminUsers';
 import AdminProducts from './AdminProducts';
 import AdminOrders from './AdminOrders';
+import AdminSettings from './AdminSettings';
+import AdminAnalytics from './AdminAnalytics';
 import './AdminDashboard.css';
+import { motion } from 'framer-motion';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, scale: 0.8, y: 20 },
+  show: { opacity: 1, scale: 1, y: 0, transition: { type: "spring", stiffness: 300 } }
+};
+
+const tableRowVariants = {
+    hidden: { opacity: 0, x: -20 },
+    show: { opacity: 1, x: 0, transition: { type: "spring", stiffness: 300 } }
+}
 
 export default function AdminDashboard() {
   const [user, setUser] = useState(null);
@@ -39,19 +60,19 @@ export default function AdminDashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      // In real app, you'd have admin endpoints
-      // For now, we'll simulate data
+      const res = await API.get('/admin/stats');
+      const { stats } = res.data;
       setStats({
-        totalUsers: 150,
-        totalProducts: 45,
-        totalOrders: 320,
-        recentUsers: [
-          { name: 'John Doe', email: 'john@example.com', joined: '2024-01-15', status: 'active' },
-          { name: 'Jane Smith', email: 'jane@example.com', joined: '2024-01-14', status: 'active' },
-          { name: 'Bob Wilson', email: 'bob@example.com', joined: '2024-01-13', status: 'active' },
-          { name: 'Alice Brown', email: 'alice@example.com', joined: '2024-01-12', status: 'active' },
-          { name: 'Charlie Davis', email: 'charlie@example.com', joined: '2024-01-11', status: 'pending' }
-        ]
+        totalUsers: stats.totalUsers,
+        totalProducts: stats.totalProducts,
+        totalOrders: stats.totalOrders,
+        revenue: stats.revenue,
+        recentUsers: stats.recentUsers.map(u => ({
+          name: u.name,
+          email: u.email,
+          joined: new Date(u.createdAt).toLocaleDateString(),
+          status: u.isActive ? 'active' : 'deactivated'
+        }))
       });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -68,25 +89,21 @@ export default function AdminDashboard() {
   if (loading) {
     return (
       <div className="loading-container">
-        <div className="spinner-wrapper">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <p className="mt-3 text-muted">Loading Dashboard...</p>
-        </div>
+        <img src="/images/loader.gif" alt="Loading..." className="loader-img" />
       </div>
     );
   }
 
   return (
     <div className="admin-dashboard-wrapper">
-      {/* Premium Navbar */}
       <nav className="premium-navbar">
         <div className="nav-container">
           <div className="nav-left">
-            <img src="/images/logo.png" alt="Logo" className="navbar-logo" />
+             <Link to="/" style={{ textDecoration: 'none' }}>
+                <h1 className="logo-text" style={{ fontSize: '1.5rem', marginBottom: 0 }}>BuyMe</h1>
+             </Link>
           </div>
-          <h1 className="portal-title">Admin Control</h1>
+          <h1 className="portal-title">ADMIN CONTROL</h1>
           <div className="nav-right">
             <button className="logout-btn" onClick={handleLogout}>
               Logout !
@@ -134,46 +151,56 @@ export default function AdminDashboard() {
               </div>
 
               {/* Stats Row */}
-              <div className="stats-row">
-                <div className="stat-box primary">
+              <motion.div 
+                className="stats-row"
+                variants={containerVariants}
+                initial="hidden"
+                animate="show"
+              >
+                <motion.div variants={itemVariants} className="stat-box primary">
                   <div className="stat-header">
                     <span className="stat-icon">●</span>
                     <span className="stat-growth">+12%</span>
                   </div>
                   <h3 className="stat-number">{stats.totalUsers}</h3>
                   <p className="stat-label">Total Users</p>
-                </div>
+                </motion.div>
 
-                <div className="stat-box success">
+                <motion.div variants={itemVariants} className="stat-box success">
                   <div className="stat-header">
                     <span className="stat-icon">●</span>
                     <span className="stat-growth">+5%</span>
                   </div>
                   <h3 className="stat-number">{stats.totalProducts}</h3>
                   <p className="stat-label">Products</p>
-                </div>
+                </motion.div>
 
-                <div className="stat-box warning">
+                <motion.div variants={itemVariants} className="stat-box warning">
                   <div className="stat-header">
                     <span className="stat-icon">●</span>
                     <span className="stat-growth">+23%</span>
                   </div>
                   <h3 className="stat-number">{stats.totalOrders}</h3>
                   <p className="stat-label">Orders</p>
-                </div>
+                </motion.div>
 
-                <div className="stat-box revenue">
+                <motion.div variants={itemVariants} className="stat-box revenue">
                   <div className="stat-header">
-                    <span className="stat-icon">●</span>
-                    <span className="stat-growth">+18%</span>
+                    <span className="stat-icon">💰</span>
+                    <span className="stat-growth">Target Met</span>
                   </div>
-                  <h3 className="stat-number">$12.4K</h3>
-                  <p className="stat-label">Revenue</p>
-                </div>
-              </div>
+                  <h3 className="stat-number">${stats.revenue?.toLocaleString() || 0}</h3>
+                  <p className="stat-label">Total Revenue</p>
+                </motion.div>
+              </motion.div>
 
               {/* Activity Section */}
-              <div className="activity-section">
+              <motion.div 
+                className="activity-section"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
+              >
                 <div className="section-top">
                   <div>
                     <h3 className="section-title">Recent Activity</h3>
@@ -193,9 +220,13 @@ export default function AdminDashboard() {
                         <th></th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <motion.tbody
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="show"
+                    >
                       {stats.recentUsers.map((user, idx) => (
-                        <tr key={idx}>
+                        <motion.tr key={idx} variants={tableRowVariants} custom={idx}>
                           <td>
                             <div className="user-display">
                               <div className="user-circle">{user.name.charAt(0)}</div>
@@ -212,19 +243,19 @@ export default function AdminDashboard() {
                           <td>
                             <button className="action-menu">⋮</button>
                           </td>
-                        </tr>
+                        </motion.tr>
                       ))}
-                    </tbody>
+                    </motion.tbody>
                   </table>
                 </div>
-              </div>
+              </motion.div>
             </>
           )}
           {activeTab === 'users' && <AdminUsers />}
           {activeTab === 'products' && <AdminProducts />}
           {activeTab === 'orders' && <AdminOrders />}
-          {activeTab === 'analytics' && <div className="content-placeholder"><h3>Analytics Coming Soon</h3></div>}
-          {activeTab === 'settings' && <div className="content-placeholder"><h3>Settings Coming Soon</h3></div>}
+          {activeTab === 'analytics' && <AdminAnalytics />}
+          {activeTab === 'settings' && <AdminSettings />}
         </main>
       </div>
     </div>

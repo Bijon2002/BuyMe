@@ -273,7 +273,9 @@ exports.logout = async (req, res) => {
 // @access  Private
 exports.getUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select('-password -passwordResetToken -passwordResetExpires');
+    const user = await User.findById(req.user._id)
+      .select('-password -passwordResetToken -passwordResetExpires')
+      .populate('favorites');
     
     if (!user) {
       return res.status(404).json({
@@ -315,7 +317,13 @@ exports.updateUserProfile = async (req, res) => {
     user.email = req.body.email || user.email;
     user.dob = req.body.dob || user.dob;
     user.phone = req.body.phone || user.phone;
-    user.profilePic = req.body.profilePic || user.profilePic;
+    
+    // Handled profilePic from Multer or plain URL
+    if (req.file) {
+      user.profilePic = `/uploads/${req.file.filename}`;
+    } else if (req.body.profilePic) {
+      user.profilePic = req.body.profilePic;
+    }
 
     // If password is being updated
     if (req.body.password) {
@@ -362,3 +370,40 @@ exports.updateUserProfile = async (req, res) => {
     });
   }
 }
+
+// ==================== TOGGLE FAVORITE ====================
+// @desc    Toggle product in favorites
+// @route   POST /api/v1/auth/favorites/:productId
+// @access  Private
+exports.toggleFavorite = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    const productId = req.params.productId;
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const isFavorited = user.favorites.includes(productId);
+
+    if (isFavorited) {
+      user.favorites = user.favorites.filter(id => id.toString() !== productId.toString());
+    } else {
+      user.favorites.push(productId);
+    }
+
+    await user.save();
+    
+    // Return updated populated favorites
+    const updatedUser = await User.findById(req.user._id).populate('favorites');
+
+    res.json({
+      success: true,
+      message: isFavorited ? 'Removed from favorites' : 'Added to favorites',
+      favorites: updatedUser.favorites
+    });
+  } catch (error) {
+    console.error('Toggle favorite error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};

@@ -119,11 +119,15 @@ exports.addProduct = async (req, res) => {
     // Add user who created the product
     req.body.createdBy = req.user.id;
     
-    // Set default image if not provided
-    if (!req.body.images || req.body.images.length === 0) {
+    // Handle file uploads
+    if (req.files && req.files.length > 0) {
+      req.body.images = req.files.map(file => ({
+        image: `/uploads/${file.filename}`
+      }));
+    } else if (!req.body.images || req.body.images.length === 0) {
+      // Set default image if not provided
       req.body.images = [{
-        public_id: 'default',
-        url: 'https://via.placeholder.com/400x400?text=No+Image'
+        image: '/images/products/1.jpg'
       }];
     }
     
@@ -169,6 +173,15 @@ exports.updateProduct = async (req, res) => {
       });
     }
     
+    // Handle file uploads
+    if (req.files && req.files.length > 0) {
+      const newImages = req.files.map(file => ({
+        image: `/uploads/${file.filename}`
+      }));
+      // In a real app, you might want to merge or keep track of old ones
+      req.body.images = newImages; 
+    }
+
     // Update product
     product = await Product.findByIdAndUpdate(
       req.params.id,

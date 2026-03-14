@@ -11,71 +11,71 @@ import Cart from './pages/Cart';
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AdminDashboard from './pages/AdminDashboard';
-import UserDashboard from './pages/UserDashboard'; // Create this too
+import UserDashboard from './pages/UserDashboard';
 import AdminRoute from './components/AdminRoute';
-import AdminUsers from './pages/AdminUsers'; // New admin users management page
-import AdminProducts from './pages/AdminProducts'; // New admin products management page
+import AdminUsers from './pages/AdminUsers';
+import AdminProducts from './pages/AdminProducts';
+import ProtectedRoute from './components/ProtectedRoute';
 
-import ProtectedRoute from './components/ProtectedRoute'; // Your existing
+import AnimatedPage from './components/AnimatedPage';
+import { AnimatePresence } from 'framer-motion';
 
 function AppContent() {
   const [cartItems, setCartItems] = useState([]);
   const location = useLocation();
-  
-  // Check if current path is an admin route
   const isAdminRoute = location.pathname.startsWith('/admin');
 
   return (
-    <div className="App">
+    <div className="main-app">
       <ToastContainer theme='dark' position='top-center' />
       
-      {/* Only show Header on non-admin routes */}
       {!isAdminRoute && <Headers cartItems={cartItems} />}
       
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/search" element={<Home />} />
-        <Route path="/product/:id" element={<ProductDetail cartItems={cartItems} setCartItems={setCartItems} />} />
-        <Route path="/cart" element={<Cart cartItems={cartItems} setCartItems={setCartItems} />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+      <main className="main-container">
+        <AnimatePresence mode="wait">
+          <Routes location={location} key={location.pathname}>
+            <Route path="/" element={<AnimatedPage><Home /></AnimatedPage>} />
+            <Route path="/search" element={<AnimatedPage><Home /></AnimatedPage>} />
+            <Route path="/product/:id" element={<AnimatedPage><ProductDetail cartItems={cartItems} setCartItems={setCartItems} /></AnimatedPage>} />
+            <Route path="/cart" element={<AnimatedPage><Cart cartItems={cartItems} setCartItems={setCartItems} /></AnimatedPage>} />
+            <Route path="/login" element={<AnimatedPage><Login /></AnimatedPage>} />
+            <Route path="/register" element={<AnimatedPage><Register /></AnimatedPage>} />
 
-        {/* Protected User Routes */}
-        <Route path="/user/dashboard" element={
-          <ProtectedRoute>
-            <UserDashboard />
-          </ProtectedRoute>
-        } />
+            {/* Protected User Routes */}
+            <Route path="/user/dashboard" element={
+              <ProtectedRoute>
+                <AnimatedPage><UserDashboard /></AnimatedPage>
+              </ProtectedRoute>
+            } />
 
-        <Route path="/admin/products" element={
-  <ProtectedRoute>
-    <AdminRoute>
-      <AdminProducts />
-    </AdminRoute>
-  </ProtectedRoute>
-} />
+            <Route path="/admin/products" element={
+              <ProtectedRoute>
+                <AdminRoute>
+                  <AnimatedPage><AdminProducts /></AnimatedPage>
+                </AdminRoute>
+              </ProtectedRoute>
+            } />
 
-        
-        {/* Admin Routes - Double Protection */}
-        <Route path="/admin/dashboard" element={
-          <ProtectedRoute>
-            <AdminRoute>
-              <AdminDashboard />
-            </AdminRoute>
-          </ProtectedRoute>
-        } />
-        
-        {/* More admin routes */}
-        <Route path="/admin/users" element={
-          <ProtectedRoute>
-            <AdminRoute>
-              <AdminUsers />
-            </AdminRoute>
-          </ProtectedRoute>
-        } />
-      </Routes>
+            {/* Admin Routes */}
+            <Route path="/admin/dashboard" element={
+              <ProtectedRoute>
+                <AdminRoute>
+                  <AnimatedPage><AdminDashboard /></AnimatedPage>
+                </AdminRoute>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/admin/users" element={
+              <ProtectedRoute>
+                <AdminRoute>
+                  <AnimatedPage><AdminUsers /></AnimatedPage>
+                </AdminRoute>
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </AnimatePresence>
+      </main>
       
-      {/* Only show Footer on non-admin routes */}
       {!isAdminRoute && <Footer />}
     </div>
   );

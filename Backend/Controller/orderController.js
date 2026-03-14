@@ -19,6 +19,7 @@ exports.createOrder = async (req, res) => {
       CartItems,
       amount,
       status: 'pending',
+      user: req.user._id, // Assumes user association is needed
       createdAt: Date.now()
     });
 
@@ -38,6 +39,27 @@ exports.createOrder = async (req, res) => {
     });
   } catch (error) {
     res.status(400).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+/**
+ * @desc    Get logged in user orders
+ * @route   GET /api/v1/order/myorders
+ * @access  Authenticated User
+ */
+exports.myOrders = async (req, res) => {
+  try {
+    const orders = await orderModel.find({ user: req.user._id });
+
+    res.status(200).json({
+      success: true,
+      orders
+    });
+  } catch (error) {
+    res.status(500).json({
       success: false,
       message: error.message
     });

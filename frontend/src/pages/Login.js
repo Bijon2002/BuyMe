@@ -4,185 +4,157 @@ import API from "../api/axiosConfig";
 import { toast } from "react-toastify";
 
 export default function Login() {
-  const [form, setForm] = useState({
-    email: "",
-    password: ""
-  });
-  
-  const [loading, setLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
-  const navigate = useNavigate();
-
-  const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value
+    const [form, setForm] = useState({
+        email: "",
+        password: ""
     });
-  };
 
-  const submitHandler = async (e) => {
-    e.preventDefault();
+    const [loading, setLoading] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
+    const navigate = useNavigate();
 
-    // Validation
-    if (!form.email || !form.password) {
-      toast.error("Please enter both email and password");
-      return;
-    }
+    const handleChange = (e) => {
+        setForm({
+            ...form,
+            [e.target.name]: e.target.value
+        });
+    };
 
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(form.email)) {
-      toast.error("Please enter a valid email address");
-      return;
-    }
+    const submitHandler = async (e) => {
+        e.preventDefault();
 
-    setLoading(true);
-
-    try {
-      const { data } = await API.post('/auth/login', form);
-
-      if (data.success) {
-        // Save tokens and user info
-        localStorage.setItem("accessToken", data.data.accessToken);
-        localStorage.setItem("refreshToken", data.data.refreshToken);
-        localStorage.setItem("userInfo", JSON.stringify({
-          _id: data.data._id,
-          name: data.data.name,
-          email: data.data.email,
-          role: data.data.role,
-          profilePic: data.data.profilePic,
-          isActive: data.data.isActive
-        }));
-
-        // Remember Me
-        if (rememberMe) {
-          localStorage.setItem("rememberedEmail", form.email);
-        } else {
-          localStorage.removeItem("rememberedEmail");
+        if (!form.email || !form.password) {
+            toast.error("Please enter both email and password");
+            return;
         }
 
-        // ========== REDIRECT LOGIC ==========
-        const redirectPath = localStorage.getItem("redirectAfterLogin") 
-          || (data.data.role === 'admin' ? '/admin/dashboard' : '/user/dashboard');
-        localStorage.removeItem("redirectAfterLogin");
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(form.email)) {
+            toast.error("Please enter a valid email address");
+            return;
+        }
 
-        toast.success(`✅ Welcome ${data.data.name}! Redirecting...`);
-        navigate(redirectPath);
+        setLoading(true);
 
-      } else {
-        toast.error(data.message || "Login failed");
-      }
-    } catch (err) {
-      console.error("Login error:", err);
+        try {
+            const { data } = await API.post('/auth/login', form);
 
-      if (err.response?.data?.message) {
-        toast.error(err.response.data.message);
-      } else if (err.message.includes("Network Error")) {
-        toast.error("Cannot connect to server. Please check if backend is running.");
-      } else if (err.response?.status === 401) {
-        toast.error("Invalid email or password. Please try again.");
-      } else {
-        toast.error("Login failed. Please try again.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+            if (data.success) {
+                localStorage.setItem("accessToken", data.data.accessToken);
+                localStorage.setItem("refreshToken", data.data.refreshToken);
+                localStorage.setItem("userInfo", JSON.stringify({
+                    _id: data.data._id,
+                    name: data.data.name,
+                    email: data.data.email,
+                    role: data.data.role,
+                    profilePic: data.data.profilePic,
+                    isActive: data.data.isActive
+                }));
 
-  // Auto-fill remembered email on mount
-  useEffect(() => {
-    const rememberedEmail = localStorage.getItem("rememberedEmail");
-    if (rememberedEmail) {
-      setForm(prev => ({ ...prev, email: rememberedEmail }));
-      setRememberMe(true);
-    }
-  }, []);
+                if (rememberMe) {
+                    localStorage.setItem("rememberedEmail", form.email);
+                } else {
+                    localStorage.removeItem("rememberedEmail");
+                }
 
-  return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <div className="auth-header">
-          <p className="auth-kicker">Welcome back</p>
-          <h2>Login to your account</h2>
-          <p className="auth-subtext">Access your orders, wishlist, and personalized recommendations.</p>
+                const redirectPath = localStorage.getItem("redirectAfterLogin")
+                    || (data.data.role === 'admin' ? '/admin/dashboard' : '/user/dashboard');
+                localStorage.removeItem("redirectAfterLogin");
+
+                toast.success(`Welcome back, ${data.data.name}!`);
+                navigate(redirectPath);
+
+            } else {
+                toast.error(data.message || "Login failed");
+            }
+        } catch (err) {
+            console.error("Login error:", err);
+            const msg = err.response?.data?.message || "Login failed. Please check your credentials.";
+            toast.error(msg);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        const rememberedEmail = localStorage.getItem("rememberedEmail");
+        if (rememberedEmail) {
+            setForm(prev => ({ ...prev, email: rememberedEmail }));
+            setRememberMe(true);
+        }
+    }, []);
+
+    return (
+        <div className="auth-wrapper-modern animate-fade-in">
+            <div className="auth-form-card card-premium">
+                <h1 className="auth-title">Welcome Back</h1>
+                <p className="text-center text-muted mb-5">Enter your credentials to access your BuyMe account.</p>
+
+                <form onSubmit={submitHandler}>
+                    <div className="form-group-modern">
+                        <label className="form-label-modern">Email Address</label>
+                        <input
+                            type="email"
+                            name="email"
+                            className="form-input-modern"
+                            placeholder="name@example.com"
+                            value={form.email}
+                            onChange={handleChange}
+                            required
+                            disabled={loading}
+                        />
+                    </div>
+
+                    <div className="form-group-modern">
+                        <div className="d-flex justify-content-between align-items-center mb-1">
+                            <label className="form-label-modern mb-0">Password</label>
+                            <Link to="/forgot-password" style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 600 }}>
+                                Forgot password?
+                            </Link>
+                        </div>
+                        <input
+                            type="password"
+                            name="password"
+                            className="form-input-modern"
+                            placeholder="••••••••"
+                            value={form.password}
+                            onChange={handleChange}
+                            required
+                            disabled={loading}
+                        />
+                    </div>
+
+                    <div className="d-flex align-items-center mb-4">
+                        <input
+                            type="checkbox"
+                            id="rememberMe"
+                            className="mr-2"
+                            checked={rememberMe}
+                            onChange={(e) => setRememberMe(e.target.checked)}
+                            disabled={loading}
+                            style={{ width: '1.1rem', height: '1.1rem', accentColor: 'var(--primary)' }}
+                        />
+                        <label htmlFor="rememberMe" className="text-muted mb-0" style={{ fontSize: '0.875rem', cursor: 'pointer' }}>
+                            Keep me logged in
+                        </label>
+                    </div>
+
+                    <button
+                        type="submit"
+                        className="btn-modern btn-primary-modern w-100 mb-4"
+                        style={{ padding: '1rem' }}
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <><span className="spinner-border spinner-border-sm mr-2"></span> Authenticating...</>
+                        ) : "Sign In to BuyMe"}
+                    </button>
+
+                    <p className="text-center text-muted mb-0">
+                        Don't have an account? <Link to="/register" style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'none' }}>Start for free</Link>
+                    </p>
+                </form>
+            </div>
         </div>
-
-        <form onSubmit={submitHandler}>
-          <div className="form-group mb-3">
-            <label className="form-label">Email address *</label>
-            <input
-              type="email"
-              name="email"
-              className="form-control"
-              placeholder="you@example.com"
-              value={form.email}
-              onChange={handleChange}
-              required
-              disabled={loading}
-            />
-          </div>
-
-          <div className="form-group mb-3">
-            <label className="form-label">Password *</label>
-            <input
-              type="password"
-              name="password"
-              className="form-control"
-              placeholder="Enter your password"
-              value={form.password}
-              onChange={handleChange}
-              required
-              disabled={loading}
-            />
-          </div>
-
-          <div className="auth-inline mb-4">
-            <label className="form-check mb-0">
-              <input
-                type="checkbox"
-                className="form-check-input"
-                id="rememberMe"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                disabled={loading}
-              />
-              <span className="form-check-label">Remember me</span>
-            </label>
-
-            <Link to="/forgot-password" className="auth-link">
-              Forgot password?
-            </Link>
-          </div>
-
-          <button
-            type="submit"
-            className="btn auth-submit w-100"
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                Logging in...
-              </>
-            ) : (
-              "Login"
-            )}
-          </button>
-
-          <div className="auth-footer">
-            <span className="text-muted">New here?</span>
-            <Link to="/register" className="auth-link fw-semibold">
-              Create an account
-            </Link>
-          </div>
-
-          <div className="auth-perks">
-            <div className="perk-chip">Track orders in real time</div>
-            <div className="perk-chip">Save multiple addresses</div>
-            <div className="perk-chip">Members-only offers</div>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
+    );
 }
