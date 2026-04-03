@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import API from "../api/axiosConfig";
 import { toast } from "react-toastify";
+import { motion } from "framer-motion";
 
 export default function Login() {
     const [form, setForm] = useState({
@@ -85,13 +86,36 @@ export default function Login() {
     }, []);
 
     return (
-        <div className="auth-wrapper-modern animate-fade-in">
-            <div className="auth-form-card card-premium">
+        <div className="auth-wrapper-modern">
+            {/* Background Orbs */}
+            <div className="auth-bg-orbs">
+                <div className="auth-orb auth-orb-1"></div>
+                <div className="auth-orb auth-orb-2"></div>
+            </div>
+
+            <motion.div 
+                className="auth-form-card"
+                initial={{ opacity: 0, y: 40, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
+            >
+                <motion.div 
+                    style={{ textAlign: 'center', marginBottom: '0.5rem', fontSize: '2.5rem' }}
+                    animate={{ rotate: [0, 5, -5, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                >
+                    👋
+                </motion.div>
                 <h1 className="auth-title">Welcome Back</h1>
                 <p className="text-center text-muted mb-5">Enter your credentials to access your BuyMe account.</p>
 
                 <form onSubmit={submitHandler}>
-                    <div className="form-group-modern">
+                    <motion.div 
+                        className="form-group-modern"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.2 }}
+                    >
                         <label className="form-label-modern">Email Address</label>
                         <input
                             type="email"
@@ -103,9 +127,14 @@ export default function Login() {
                             required
                             disabled={loading}
                         />
-                    </div>
+                    </motion.div>
 
-                    <div className="form-group-modern">
+                    <motion.div 
+                        className="form-group-modern"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.3 }}
+                    >
                         <div className="d-flex justify-content-between align-items-center mb-1">
                             <label className="form-label-modern mb-0">Password</label>
                             <Link to="/forgot-password" style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 600 }}>
@@ -122,9 +151,14 @@ export default function Login() {
                             required
                             disabled={loading}
                         />
-                    </div>
+                    </motion.div>
 
-                    <div className="d-flex align-items-center mb-4">
+                    <motion.div 
+                        className="d-flex align-items-center mb-4"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.4 }}
+                    >
                         <input
                             type="checkbox"
                             id="rememberMe"
@@ -137,24 +171,48 @@ export default function Login() {
                         <label htmlFor="rememberMe" className="text-muted mb-0" style={{ fontSize: '0.875rem', cursor: 'pointer' }}>
                             Keep me logged in
                         </label>
-                    </div>
+                    </motion.div>
 
-                    <button
+                    <motion.button
                         type="submit"
-                        className="btn-modern btn-primary-modern w-100 mb-4"
-                        style={{ padding: '1rem' }}
+                        className="btn-modern btn-primary-modern btn-shimmer w-100 mb-4"
+                        style={{ padding: '1rem', fontSize: '1.05rem' }}
                         disabled={loading}
+                        whileHover={!loading ? { scale: 1.02 } : {}}
+                        whileTap={!loading ? { scale: 0.98 } : {}}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
                     >
                         {loading ? (
                             <><span className="spinner-border spinner-border-sm mr-2"></span> Authenticating...</>
-                        ) : "Sign In to BuyMe"}
-                    </button>
+                        ) : (
+                            <><i className="fas fa-sign-in-alt mr-2"></i> Sign In to BuyMe</>
+                        )}
+                    </motion.button>
+
+                    {/* Divider */}
+                    <div className="d-flex align-items-center mb-4" style={{ gap: '1rem' }}>
+                        <div style={{ flex: 1, height: '1px', background: '#e2e8f0' }}></div>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500 }}>or continue with</span>
+                        <div style={{ flex: 1, height: '1px', background: '#e2e8f0' }}></div>
+                    </div>
+
+                    {/* Social Buttons (Visual Only) */}
+                    <div className="d-flex gap-3 mb-4">
+                        <button type="button" className="btn-modern w-100" style={{ background: '#f1f5f9', color: '#333', border: '1px solid #e2e8f0', fontSize: '0.9rem', padding: '0.7rem' }}>
+                            <i className="fab fa-google mr-2" style={{ color: '#ea4335' }}></i> Google
+                        </button>
+                        <button type="button" className="btn-modern w-100" style={{ background: '#f1f5f9', color: '#333', border: '1px solid #e2e8f0', fontSize: '0.9rem', padding: '0.7rem' }}>
+                            <i className="fab fa-github mr-2"></i> GitHub
+                        </button>
+                    </div>
 
                     <p className="text-center text-muted mb-0">
                         Don't have an account? <Link to="/register" style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'none' }}>Start for free</Link>
                     </p>
                 </form>
-            </div>
+            </motion.div>
         </div>
     );
 }

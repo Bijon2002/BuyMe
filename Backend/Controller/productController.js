@@ -40,6 +40,11 @@ exports.getProducts = async (req, res) => {
       query.ratings = { $gte: parseFloat(req.query.minRating) };
     }
     
+    // Filter by Free Delivery
+    if (req.query.freeDelivery === 'true') {
+      query.deliveryCharge = { $in: [0, null] };
+    }
+
     // Sorting
     let sort = {};
     if (req.query.sort) {
@@ -132,6 +137,10 @@ exports.addProduct = async (req, res) => {
     }
     
     const product = await Product.create(req.body);
+    
+    // Trigger Newsletter for New Product asynchronously
+    const { sendNewPostEmail } = require('./newsletterController');
+    sendNewPostEmail(product).catch(err => console.error("Newsletter error async:", err));
     
     res.status(201).json({
       success: true,

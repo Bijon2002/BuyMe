@@ -19,7 +19,7 @@ exports.createOrder = async (req, res) => {
       CartItems,
       amount,
       status: 'pending',
-      user: req.user._id, // Assumes user association is needed
+      user: req.user ? req.user._id : null, // Support guest checkout
       createdAt: Date.now()
     });
 

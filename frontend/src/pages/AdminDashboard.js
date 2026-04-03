@@ -1,263 +1,298 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import API from '../api/axiosConfig';
-import AdminUsers from './AdminUsers';
 import AdminProducts from './AdminProducts';
 import AdminOrders from './AdminOrders';
-import AdminSettings from './AdminSettings';
+import AdminUsers from './AdminUsers';
 import AdminAnalytics from './AdminAnalytics';
+import AdminSettings from './AdminSettings';
+import AdminCategories from './AdminCategories';
+import AdminContacts from './AdminContacts';
+import AdminSubscribers from './AdminSubscribers';
+import CountUpNumber from '../components/CountUpNumber';
+import { motion, AnimatePresence } from 'framer-motion';
 import './AdminDashboard.css';
-import { motion } from 'framer-motion';
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 }
-  }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, scale: 0.8, y: 20 },
-  show: { opacity: 1, scale: 1, y: 0, transition: { type: "spring", stiffness: 300 } }
-};
-
-const tableRowVariants = {
-    hidden: { opacity: 0, x: -20 },
-    show: { opacity: 1, x: 0, transition: { type: "spring", stiffness: 300 } }
-}
 
 export default function AdminDashboard() {
-  const [user, setUser] = useState(null);
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    totalProducts: 0,
-    totalOrders: 0,
-    recentUsers: []
-  });
+  const [activeTab, setActiveTab] = useState('overview');
+  const [stats, setStats] = useState({ totalUsers: 0, totalProducts: 0, totalOrders: 0, totalRevenue: 0 });
+  const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('dashboard');
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    // Check if user is admin
-    const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-    
-    if (!userInfo) {
-      navigate('/login');
-      return;
-    }
-    
-    if (userInfo.role !== 'admin') {
-      alert('Access denied. Admin only.');
-      navigate('/');
-      return;
-    }
-    
-    setUser(userInfo);
-    fetchDashboardData();
-  }, [navigate]);
-
-  const fetchDashboardData = async () => {
-    try {
-      const res = await API.get('/admin/stats');
-      const { stats } = res.data;
-      setStats({
-        totalUsers: stats.totalUsers,
-        totalProducts: stats.totalProducts,
-        totalOrders: stats.totalOrders,
-        revenue: stats.revenue,
-        recentUsers: stats.recentUsers.map(u => ({
-          name: u.name,
-          email: u.email,
-          joined: new Date(u.createdAt).toLocaleDateString(),
-          status: u.isActive ? 'active' : 'deactivated'
-        }))
-      });
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const fetchStats = async () => {
+      try {
+        const [usersRes, productsRes, ordersRes] = await Promise.all([
+          API.get('/admin/users'),
+          API.get('/products'),
+          API.get('/admin/orders')
+        ]);
+        
+        const orders = ordersRes.data.orders || [];
+        const revenue = orders.reduce((acc, o) => acc + Number(o.amount || 0), 0);
+        
+        setStats({
+          totalUsers: usersRes.data.users?.length || 0,
+          totalProducts: productsRes.data.products?.length || 0,
+          totalOrders: orders.length,
+          totalRevenue: revenue
+        });
+        setRecentOrders(orders.slice(0, 5));
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
 
   const handleLogout = () => {
-    localStorage.clear();
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('userInfo');
     navigate('/login');
   };
 
-  if (loading) {
-    return (
-      <div className="loading-container">
-        <img src="/images/loader.gif" alt="Loading..." className="loader-img" />
-      </div>
-    );
-  }
+  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+
+  const tabs = [
+    { id: 'overview', icon: 'fa-chart-pie', label: 'Overview' },
+    { id: 'products', icon: 'fa-box-open', label: 'Products' },
+    { id: 'categories', icon: 'fa-tags', label: 'Categories' },
+    { id: 'orders', icon: 'fa-shopping-cart', label: 'Orders' },
+    { id: 'users', icon: 'fa-users', label: 'Users' },
+    { id: 'analytics', icon: 'fa-chart-line', label: 'Analytics' },
+    { id: 'contacts', icon: 'fa-envelope-open-text', label: 'Inquiries' },
+    { id: 'subscribers', icon: 'fa-at', label: 'Subscribers' },
+    { id: 'settings', icon: 'fa-cog', label: 'Settings' },
+  ];
+
+  const statCards = [
+    { title: 'Total Revenue', value: stats.totalRevenue, prefix: '$', icon: 'fa-dollar-sign', bg: 'linear-gradient(135deg, #667eea, #764ba2)', decimals: 2 },
+    { title: 'Total Orders', value: stats.totalOrders, icon: 'fa-shopping-bag', bg: 'linear-gradient(135deg, #f093fb, #f5576c)', suffix: '' },
+    { title: 'Total Products', value: stats.totalProducts, icon: 'fa-box', bg: 'linear-gradient(135deg, #4facfe, #00f2fe)', suffix: '' },
+    { title: 'Total Users', value: stats.totalUsers, icon: 'fa-users', bg: 'linear-gradient(135deg, #43e97b, #38f9d7)', suffix: '' },
+  ];
 
   return (
-    <div className="admin-dashboard-wrapper">
-      <nav className="premium-navbar">
-        <div className="nav-container">
-          <div className="nav-left">
-             <Link to="/" style={{ textDecoration: 'none' }}>
-                <h1 className="logo-text" style={{ fontSize: '1.5rem', marginBottom: 0 }}>BuyMe</h1>
-             </Link>
+    <div className="admin-dashboard-layout">
+      {/* Sidebar */}
+      <motion.aside 
+        className="admin-sidebar"
+        initial={{ x: -280 }}
+        animate={{ x: 0 }}
+        transition={{ type: "spring", stiffness: 200, damping: 25 }}
+      >
+        <div className="sidebar-header">
+          <Link to="/" style={{ textDecoration: 'none' }}>
+            <h2 className="sidebar-logo">Buy<span>Me</span></h2>
+          </Link>
+          <p className="sidebar-subtitle">Admin Panel</p>
+        </div>
+
+        <nav className="sidebar-nav">
+          {tabs.map((tab, i) => (
+            <motion.button
+              key={tab.id}
+              className={`sidebar-nav-item ${activeTab === tab.id ? 'active' : ''}`}
+              onClick={() => setActiveTab(tab.id)}
+              whileHover={{ x: 5 }}
+              whileTap={{ scale: 0.97 }}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.05 }}
+            >
+              <i className={`fas ${tab.icon}`}></i>
+              <span>{tab.label}</span>
+              {activeTab === tab.id && (
+                <motion.div className="sidebar-active-indicator" layoutId="activeTab" />
+              )}
+            </motion.button>
+          ))}
+        </nav>
+
+        <div className="sidebar-footer">
+          <div className="sidebar-user">
+            <div className="sidebar-user-avatar">
+              {userInfo.name ? userInfo.name.charAt(0).toUpperCase() : 'A'}
+            </div>
+            <div>
+              <p className="sidebar-user-name">{userInfo.name || 'Admin'}</p>
+              <p className="sidebar-user-role">Administrator</p>
+            </div>
           </div>
-          <h1 className="portal-title">ADMIN CONTROL</h1>
-          <div className="nav-right">
-            <button className="logout-btn" onClick={handleLogout}>
-              Logout !
-            </button>
+          <motion.button 
+            onClick={handleLogout} 
+            className="sidebar-logout-btn"
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+          >
+            <i className="fas fa-sign-out-alt"></i> Logout
+          </motion.button>
+        </div>
+      </motion.aside>
+
+      {/* Main Content */}
+      <main className="admin-main-content">
+        {/* Top Bar */}
+        <div className="admin-topbar" data-aos="fade-down">
+          <div>
+            <h1 className="admin-page-title">
+              {tabs.find(t => t.id === activeTab)?.label || 'Dashboard'}
+            </h1>
+            <p className="admin-page-subtitle">
+              {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            </p>
+          </div>
+          <div className="d-flex align-items-center gap-3">
+            <Link to="/" className="btn-modern" style={{ background: 'rgba(115,21,46,0.08)', color: 'var(--primary)', fontSize: '0.85rem', padding: '0.5rem 1rem' }}>
+              <i className="fas fa-store mr-1"></i> View Store
+            </Link>
           </div>
         </div>
-      </nav>
 
-      <div className="dashboard-layout">
-        {/* Sleek Sidebar */}
-        <aside className="sleek-sidebar">
-          <div className="sidebar-content">
-            {[
-              { id: 'dashboard', icon: '◆', label: 'Overview' },
-              { id: 'users', icon: '◇', label: 'Users' },
-              { id: 'products', icon: '◈', label: 'Products' },
-              { id: 'orders', icon: '◉', label: 'Orders' },
-              { id: 'analytics', icon: '◊', label: 'Analytics' },
-              { id: 'settings', icon: '◐', label: 'Settings' }
-            ].map((item) => (
-              <button
-                key={item.id}
-                className={`nav-btn ${activeTab === item.id ? 'active' : ''}`}
-                onClick={() => setActiveTab(item.id)}
-              >
-                <span className="nav-icon">{item.icon}</span>
-                <span className="nav-label">{item.label}</span>
-                {activeTab === item.id && <span className="active-indicator"></span>}
-              </button>
-            ))}
-          </div>
-        </aside>
-
-        {/* Main Dashboard */}
-        <main className="dashboard-main">
-          {activeTab === 'dashboard' && (
-            <>
-              {/* Hero Section */}
-              <div className="hero-section">
-                <div className="hero-content">
-                  <h2 className="hero-title">Welcome Back, {user?.name?.split(' ')[0]}!</h2>
-                  <p className="hero-subtitle">Here's your business snapshot</p>
-                </div>
-                <div className="hero-date">{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+        <AnimatePresence mode="wait">
+          {/* OVERVIEW TAB */}
+          {activeTab === 'overview' && (
+            <motion.div key="overview" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
+              {/* Stat Cards */}
+              <div className="admin-stats-grid">
+                {statCards.map((card, i) => (
+                  <motion.div 
+                    key={card.title} 
+                    className="admin-stat-card"
+                    data-aos="fade-up" 
+                    data-aos-delay={i * 100}
+                    whileHover={{ y: -5, scale: 1.02 }}
+                  >
+                    <div className="admin-stat-icon" style={{ background: card.bg }}>
+                      <i className={`fas ${card.icon}`}></i>
+                    </div>
+                    <div>
+                      <p className="admin-stat-label">{card.title}</p>
+                      <h3 className="admin-stat-value">
+                        <CountUpNumber end={card.value} prefix={card.prefix || ''} suffix={card.suffix || ''} decimals={card.decimals || 0} />
+                      </h3>
+                    </div>
+                  </motion.div>
+                ))}
               </div>
 
-              {/* Stats Row */}
-              <motion.div 
-                className="stats-row"
-                variants={containerVariants}
-                initial="hidden"
-                animate="show"
-              >
-                <motion.div variants={itemVariants} className="stat-box primary">
-                  <div className="stat-header">
-                    <span className="stat-icon">●</span>
-                    <span className="stat-growth">+12%</span>
-                  </div>
-                  <h3 className="stat-number">{stats.totalUsers}</h3>
-                  <p className="stat-label">Total Users</p>
-                </motion.div>
-
-                <motion.div variants={itemVariants} className="stat-box success">
-                  <div className="stat-header">
-                    <span className="stat-icon">●</span>
-                    <span className="stat-growth">+5%</span>
-                  </div>
-                  <h3 className="stat-number">{stats.totalProducts}</h3>
-                  <p className="stat-label">Products</p>
-                </motion.div>
-
-                <motion.div variants={itemVariants} className="stat-box warning">
-                  <div className="stat-header">
-                    <span className="stat-icon">●</span>
-                    <span className="stat-growth">+23%</span>
-                  </div>
-                  <h3 className="stat-number">{stats.totalOrders}</h3>
-                  <p className="stat-label">Orders</p>
-                </motion.div>
-
-                <motion.div variants={itemVariants} className="stat-box revenue">
-                  <div className="stat-header">
-                    <span className="stat-icon">💰</span>
-                    <span className="stat-growth">Target Met</span>
-                  </div>
-                  <h3 className="stat-number">${stats.revenue?.toLocaleString() || 0}</h3>
-                  <p className="stat-label">Total Revenue</p>
-                </motion.div>
-              </motion.div>
-
-              {/* Activity Section */}
-              <motion.div 
-                className="activity-section"
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
-              >
-                <div className="section-top">
-                  <div>
-                    <h3 className="section-title">Recent Activity</h3>
-                    <p className="section-desc">Latest user registrations</p>
-                  </div>
-                  <button className="btn-view-all">View All →</button>
+              {/* Quick Actions */}
+              <div className="admin-quick-actions" data-aos="fade-up" data-aos-delay="200">
+                <h3 className="admin-section-title"><i className="fas fa-bolt mr-2" style={{ color: 'var(--secondary)' }}></i>Quick Actions</h3>
+                <div className="quick-actions-grid">
+                  {[
+                    { label: 'Add Product', icon: 'fa-plus', color: '#667eea', onClick: () => setActiveTab('products') },
+                    { label: 'View Orders', icon: 'fa-eye', color: '#f5576c', onClick: () => setActiveTab('orders') },
+                    { label: 'Manage Users', icon: 'fa-user-cog', color: '#43e97b', onClick: () => setActiveTab('users') },
+                    { label: 'Analytics', icon: 'fa-chart-bar', color: '#4facfe', onClick: () => setActiveTab('analytics') },
+                  ].map((action, i) => (
+                    <motion.button 
+                      key={action.label}
+                      className="quick-action-card"
+                      onClick={action.onClick}
+                      whileHover={{ y: -5 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <div className="quick-action-icon" style={{ background: `${action.color}20`, color: action.color }}>
+                        <i className={`fas ${action.icon}`}></i>
+                      </div>
+                      <span>{action.label}</span>
+                    </motion.button>
+                  ))}
                 </div>
+              </div>
 
-                <div className="activity-table">
-                  <table>
+              {/* Recent Orders */}
+              <div className="admin-recent-orders" data-aos="fade-up" data-aos-delay="300">
+                <h3 className="admin-section-title"><i className="fas fa-clock mr-2" style={{ color: 'var(--secondary)' }}></i>Recent Orders</h3>
+                <div className="admin-table-container">
+                  <table className="admin-table">
                     <thead>
                       <tr>
-                        <th>User</th>
-                        <th>Email</th>
+                        <th>Order ID</th>
                         <th>Date</th>
+                        <th>Items</th>
+                        <th>Amount</th>
                         <th>Status</th>
-                        <th></th>
                       </tr>
                     </thead>
-                    <motion.tbody
-                        variants={containerVariants}
-                        initial="hidden"
-                        animate="show"
-                    >
-                      {stats.recentUsers.map((user, idx) => (
-                        <motion.tr key={idx} variants={tableRowVariants} custom={idx}>
+                    <tbody>
+                      {recentOrders.map((order, i) => (
+                        <motion.tr 
+                          key={order._id}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.05 }}
+                        >
+                          <td className="order-id-cell">#{order._id.substring(0,8).toUpperCase()}</td>
+                          <td>{new Date(order.createdAt).toLocaleDateString()}</td>
+                          <td>{order.CartItems?.length || 0} items</td>
+                          <td className="gradient-text" style={{ fontWeight: 800 }}>${Number(order.amount).toFixed(2)}</td>
                           <td>
-                            <div className="user-display">
-                              <div className="user-circle">{user.name.charAt(0)}</div>
-                              <span className="user-text">{user.name}</span>
-                            </div>
-                          </td>
-                          <td className="email-text">{user.email}</td>
-                          <td className="date-text">{user.joined}</td>
-                          <td>
-                            <span className={`status-chip ${user.status}`}>
-                              {user.status}
+                            <span className={`status-badge status-${(order.status || 'pending').toLowerCase()}`}>
+                              {order.status || 'Pending'}
                             </span>
-                          </td>
-                          <td>
-                            <button className="action-menu">⋮</button>
                           </td>
                         </motion.tr>
                       ))}
-                    </motion.tbody>
+                      {recentOrders.length === 0 && (
+                        <tr><td colSpan="5" className="text-center text-muted py-4">No orders yet</td></tr>
+                      )}
+                    </tbody>
                   </table>
                 </div>
-              </motion.div>
-            </>
+              </div>
+            </motion.div>
           )}
-          {activeTab === 'users' && <AdminUsers />}
-          {activeTab === 'products' && <AdminProducts />}
-          {activeTab === 'orders' && <AdminOrders />}
-          {activeTab === 'analytics' && <AdminAnalytics />}
-          {activeTab === 'settings' && <AdminSettings />}
-        </main>
-      </div>
+
+          {/* OTHER TABS */}
+          {activeTab === 'products' && (
+            <motion.div key="products" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+              <AdminProducts />
+            </motion.div>
+          )}
+          {activeTab === 'orders' && (
+            <motion.div key="orders" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+              <AdminOrders />
+            </motion.div>
+          )}
+          {activeTab === 'categories' && (
+            <motion.div key="categories" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+              <AdminCategories />
+            </motion.div>
+          )}
+          {activeTab === 'users' && (
+            <motion.div key="users" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+              <AdminUsers />
+            </motion.div>
+          )}
+          {activeTab === 'analytics' && (
+            <motion.div key="analytics" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+              <AdminAnalytics />
+            </motion.div>
+          )}
+          {activeTab === 'contacts' && (
+            <motion.div key="contacts" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+              <AdminContacts />
+            </motion.div>
+          )}
+          {activeTab === 'subscribers' && (
+            <motion.div key="subscribers" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+              <AdminSubscribers />
+            </motion.div>
+          )}
+          {activeTab === 'settings' && (
+            <motion.div key="settings" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+              <AdminSettings />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
     </div>
   );
 }

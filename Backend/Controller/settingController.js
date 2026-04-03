@@ -8,8 +8,8 @@ exports.getSettings = async (req, res) => {
                 shopName: 'BuyMe',
                 logo: '/images/logo.png',
                 carousel: [
-                    { image: '/images/banner1.jpg', title: 'Premium Collection', subtitle: 'Discover our latest arrivals' },
-                    { image: '/images/banner2.jpg', title: 'Summer Sale', subtitle: 'Up to 50% off on all items' }
+                    { image: '/images/hero-1.png', title: 'PREMIUM COLLECTIONS', subtitle: 'Experience the pinnacle of luxury and quality.' },
+                    { image: '/images/hero-2.png', title: 'NEXT-GEN ELECTRONICS', subtitle: 'High-performance gear for your digital life.' }
                 ]
             });
         }

@@ -6,7 +6,7 @@ const orderController = require('../Controller/orderController');
 
 
 
-router.route('/').post(isAuthenticated, createOrder);
+router.route('/').post(createOrder);
 router.get('/myorders', isAuthenticated, orderController.myOrders);
 
 // Admin routes
