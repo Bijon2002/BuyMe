@@ -1,5 +1,5 @@
 const { HfInference } = require('@huggingface/inference');
-const Product = require('../Models/productModel');
+const Product = require('../models/productModel');
 
 exports.chatWithLLM = async (req, res) => {
   try {
