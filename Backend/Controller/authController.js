@@ -1,5 +1,8 @@
 const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
+const { OAuth2Client } = require('google-auth-library');
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // ==================== TOKEN GENERATORS ====================
 // Generate Access Token (15 minutes)
@@ -330,6 +333,19 @@ exports.updateUserProfile = async (req, res) => {
       user.password = req.body.password;
     }
 
+    // Update billing address if provided
+    if (req.body.billingAddress) {
+      const addr = typeof req.body.billingAddress === 'string'
+        ? JSON.parse(req.body.billingAddress)
+        : req.body.billingAddress;
+      user.billingAddress = {
+        street: addr.street || user.billingAddress?.street || '',
+        city: addr.city || user.billingAddress?.city || '',
+        postalCode: addr.postalCode || user.billingAddress?.postalCode || '',
+        country: addr.country || user.billingAddress?.country || '',
+      };
+    }
+
     const updatedUser = await user.save();
 
     // Generate new access token if email or password changed
@@ -350,6 +366,7 @@ exports.updateUserProfile = async (req, res) => {
         dob: updatedUser.dob,
         phone: updatedUser.phone,
         isActive: updatedUser.isActive,
+        billingAddress: updatedUser.billingAddress,
         accessToken: accessToken || req.headers.authorization?.split(' ')[1]
       }
     });
@@ -407,3 +424,104 @@ exports.toggleFavorite = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
+
+// ==================== GOOGLE LOGIN ====================
+// @desc    Login or register with Google
+// @route   POST /api/v1/auth/google
+// @access  Public
+exports.googleLogin = async (req, res) => {
+  try {
+    const { credential } = req.body;
+
+    if (!credential) {
+      return res.status(400).json({
+        success: false,
+        message: 'Google credential is required'
+      });
+    }
+
+    // Verify the Google token
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { sub: googleId, email, name, picture, email_verified } = payload;
+
+    // Check if user already exists
+    let user = await User.findOne({ email: email.toLowerCase() });
+
+    if (user) {
+      // User exists — update Google info if not already set
+      if (!user.googleId) {
+        user.googleId = googleId;
+        user.authProvider = user.authProvider === 'local' ? 'local' : 'google';
+      }
+      if (!user.profilePic && picture) {
+        user.profilePic = picture;
+      }
+      user.emailVerified = email_verified || user.emailVerified;
+      user.lastLogin = new Date();
+      await user.save();
+    } else {
+      // Create new user from Google profile
+      user = await User.create({
+        name,
+        email: email.toLowerCase(),
+        googleId,
+        authProvider: 'google',
+        profilePic: picture || null,
+        emailVerified: email_verified || false,
+        isActive: true,
+        lastLogin: new Date()
+      });
+    }
+
+    // Check if account is active
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: 'Account is deactivated. Please contact support.'
+      });
+    }
+
+    // Generate tokens
+    const accessToken = generateAccessToken(user._id, user.role);
+    const refreshToken = generateRefreshToken(user._id);
+
+    res.json({
+      success: true,
+      message: 'Google login successful',
+      data: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        profilePic: user.profilePic,
+        dob: user.dob,
+        phone: user.phone,
+        isActive: user.isActive,
+        emailVerified: user.emailVerified,
+        lastLogin: user.lastLogin,
+        accessToken,
+        refreshToken
+      }
+    });
+
+  } catch (error) {
+    console.error('Google login error:', error);
+
+    if (error.message?.includes('Token used too late') || error.message?.includes('Invalid token')) {
+      return res.status(401).json({
+        success: false,
+        message: 'Google authentication failed. Please try again.'
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Server error during Google login'
+    });
+  }
+};

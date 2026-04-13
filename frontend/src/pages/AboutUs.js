@@ -8,10 +8,12 @@ const values = [
 ];
 
 const team = [
-  { name: 'Alexandra Chen', role: 'CEO & Co-Founder', icon: 'fas fa-user-tie' },
-  { name: 'Marcus Rivera', role: 'CTO', icon: 'fas fa-laptop-code' },
-  { name: 'Sophia Laurent', role: 'Head of Design', icon: 'fas fa-palette' },
-  { name: 'James Okafor', role: 'VP of Operations', icon: 'fas fa-chart-line' },
+  { 
+    name: 'Bijosilin Marisilin', 
+    role: 'Machine Learning Researcher • BSc (Hons) Software Engineering Undergraduate at SLIIT • Salesforce Certified Trailblazer • Rotaractor • Johnian',
+    image: '/images/bijon.jpg',
+    icon: 'fas fa-user-tie' 
+  }
 ];
 
 const timeline = [
@@ -149,23 +151,43 @@ export default function AboutUs() {
 
       {/* Leadership Team */}
       <section className="container" data-aos="fade-up">
-        <h2 className="section-title-modern text-center d-block mb-5">Leadership Team</h2>
-        <div className="row g-5 justify-content-center">
-          {team.map((member, i) => (
-            <div key={i} className="col-6 col-md-3 text-center" data-aos="fade-up" data-aos-delay={i * 100}>
-              <motion.div 
-                className="position-relative mb-4 mx-auto"
-                whileHover={{ scale: 1.05 }}
-                style={{ width: '120px', height: '120px' }}
-              >
-                <div style={{ width: '100%', height: '100%', borderRadius: '35px', background: 'linear-gradient(135deg, var(--primary), #3b82f6)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', boxShadow: '0 15px 30px rgba(59,130,246,0.2)' }}>
-                    <i className={member.icon}></i>
-                </div>
-              </motion.div>
-              <h5 style={{ fontWeight: 800, marginBottom: '0.5rem', fontSize: '1.2rem' }}>{member.name}</h5>
-              <p style={{ color: 'var(--secondary)', fontWeight: 700, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>{member.role}</p>
+        <h2 className="section-title-modern text-center d-block mb-5">Leadership</h2>
+        
+        <div className="row justify-content-center">
+            <div className="col-12 col-md-10 col-lg-8">
+                {team.map((member, i) => (
+                    <motion.div 
+                        key={i} 
+                        className="card-premium p-4 p-md-5 d-flex flex-column flex-md-row align-items-center gap-4 gap-md-5 mx-auto"
+                        whileHover={{ y: -5 }}
+                        transition={{ ease: "easeOut", duration: 0.3 }}
+                    >
+                        <div style={{ flexShrink: 0 }}>
+                            <div className="position-relative" style={{ width: '200px', height: '200px' }}>
+                                <div style={{ width: '100%', height: '100%', borderRadius: '40px', overflow: 'hidden', background: 'linear-gradient(135deg, var(--primary), #3b82f6)', boxShadow: '0 20px 40px rgba(59,130,246,0.3)' }}>
+                                    {member.image ? (
+                                        <img src={process.env.PUBLIC_URL + member.image} alt={member.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    ) : (
+                                        <div style={{ width: '100%', height: '100%', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '4rem' }}>
+                                            <i className={member.icon}></i>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="text-center text-md-start">
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
+                                <div style={{ display: 'inline-block', padding: '0.4rem 1rem', background: 'rgba(59,130,246,0.1)', color: '#3b82f6', borderRadius: '999px', fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '1rem' }}>
+                                    Founder & Visionary
+                                </div>
+                            </motion.div>
+                            <h3 style={{ fontWeight: 900, marginBottom: '1rem', fontSize: '2.2rem', color: 'var(--text-main)', letterSpacing: '-0.5px' }}>{member.name}</h3>
+                            <p style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '1rem', lineHeight: 1.8, margin: 0 }}>{member.role}</p>
+                        </div>
+                    </motion.div>
+                ))}
             </div>
-          ))}
         </div>
       </section>
     </div>

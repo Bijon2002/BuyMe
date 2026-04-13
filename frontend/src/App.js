@@ -2,6 +2,7 @@ import Headers from './components/Header';
 import Footer from './components/footer';
 import MarqueeBanner from './components/MarqueeBanner';
 import ScrollToTop from './components/ScrollToTop';
+import Chatbot from './components/Chatbot';
 import './App.css';
 import Home from './pages/Home';
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
@@ -29,7 +30,21 @@ import AOS from 'aos';
 import 'aos/dist/aos.css';
 
 function AppContent() {
-  const [cartItems, setCartItems] = useState([]);
+  const [cartItems, setCartItems] = useState(() => {
+    try {
+      const item = window.localStorage.getItem('cartItems');
+      return item ? JSON.parse(item) : [];
+    } catch (error) {
+      console.warn("Error reading localStorage", error);
+      return [];
+    }
+  });
+
+  const updateCartItems = (newItems) => {
+    setCartItems(newItems);
+    window.localStorage.setItem('cartItems', JSON.stringify(newItems));
+  };
+
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
 
@@ -62,8 +77,8 @@ function AppContent() {
             <Route path="/new" element={<AnimatedPage><NewArrivals /></AnimatedPage>} />
             <Route path="/about" element={<AnimatedPage><AboutUs /></AnimatedPage>} />
             <Route path="/contact" element={<AnimatedPage><Contact /></AnimatedPage>} />
-            <Route path="/product/:id" element={<AnimatedPage><ProductDetail cartItems={cartItems} setCartItems={setCartItems} /></AnimatedPage>} />
-            <Route path="/cart" element={<AnimatedPage><Cart cartItems={cartItems} setCartItems={setCartItems} /></AnimatedPage>} />
+            <Route path="/product/:id" element={<AnimatedPage><ProductDetail cartItems={cartItems} setCartItems={updateCartItems} /></AnimatedPage>} />
+            <Route path="/cart" element={<AnimatedPage><Cart cartItems={cartItems} setCartItems={updateCartItems} /></AnimatedPage>} />
             <Route path="/login" element={<AnimatedPage><Login /></AnimatedPage>} />
             <Route path="/register" element={<AnimatedPage><Register /></AnimatedPage>} />
 
@@ -89,7 +104,10 @@ function AppContent() {
       {!isAdminRoute && <Footer />}
       <ScrollToTop />
       
-      {/* WhatsApp Floating Button */}
+      {/* Chatbot — bottom right */}
+      {!isAdminRoute && <Chatbot isAdminRoute={isAdminRoute} />}
+
+      {/* WhatsApp Floating Button — bottom left */}
       {!isAdminRoute && (
         <a 
           href="https://wa.me/0773155125" 

@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require('express'); // Nodemon Qwen Restart
 const app = express();
 const dotenv = require('dotenv');
 const path = require('path');
@@ -9,7 +9,19 @@ dotenv.config();
 // Middleware FIRST
 app.use(express.json());
 app.use(cors({
-  origin: [process.env.FRONTEND_URL || 'http://localhost:3000'],
+  origin: function (origin, callback) {
+    const allowed = [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      process.env.FRONTEND_URL,
+    ].filter(Boolean);
+    // Also allow any *.pages.dev subdomain (Cloudflare Pages)
+    if (!origin || allowed.includes(origin) || /\.pages\.dev$/.test(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS policy: ' + origin + ' not allowed'));
+    }
+  },
   credentials: true
 }));
 
@@ -31,6 +43,7 @@ const settingsRoutes = require('./Routes/settingsRoutes');
 const categoryRoutes = require('./Routes/categoryRoutes');
 const newsletterRoutes = require('./Routes/newsletterRoutes');
 const contactRoutes = require('./Routes/contactRoutes');
+const chatbotRoutes = require('./Routes/chatbotRoutes');
 const settingController = require('./Controller/settingController');
 const categoryController = require('./Controller/categoryController');
 const { isAuthenticated, isAdmin } = require('./middleware/authMiddleware');
@@ -43,6 +56,7 @@ app.use('/api/v1/settings', settingsRoutes);
 app.use('/api/v1/categories', categoryRoutes);
 app.use('/api/v1/newsletter', newsletterRoutes);
 app.use('/api/v1/contact', contactRoutes);
+app.use('/api/v1/chatbot', chatbotRoutes);
 
 // Expose settings publicly for Home page Carousel
 app.get('/api/v1/settings', settingController.getSettings);

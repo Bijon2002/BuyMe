@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import API from '../api/axiosConfig';
 import { toast } from 'react-toastify';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,10 +10,13 @@ export default function UserDashboard() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState('overview');
+  const [searchParams] = useSearchParams();
   
   const [profilePicFile, setProfilePicFile] = useState(null);
   const [previewPic, setPreviewPic] = useState(null);
   const [uploadingInfo, setUploadingInfo] = useState(false);
+  const [billingAddress, setBillingAddress] = useState({ street: '', city: '', postalCode: '', country: '' });
+  const [savingBilling, setSavingBilling] = useState(false);
 
   const navigate = useNavigate();
 
@@ -50,6 +53,24 @@ export default function UserDashboard() {
     };
     loadAllData();
   }, [navigate]);
+
+  // Handle URL param to auto-navigate to billing section
+  useEffect(() => {
+    const section = searchParams.get('section');
+    if (section === 'billing') setActiveSection('billing');
+  }, [searchParams]);
+
+  // Sync billing address from user profile
+  useEffect(() => {
+    if (user?.billingAddress) {
+      setBillingAddress({
+        street: user.billingAddress.street || '',
+        city: user.billingAddress.city || '',
+        postalCode: user.billingAddress.postalCode || '',
+        country: user.billingAddress.country || '',
+      });
+    }
+  }, [user]);
 
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
@@ -118,9 +139,32 @@ export default function UserDashboard() {
           ? (process.env.REACT_APP_API_URL || "http://localhost:8000/api/v1").split('/api')[0] + user.profilePic 
           : user?.profilePic);
 
+  const saveBillingAddress = async () => {
+    if (!billingAddress.street || !billingAddress.city) {
+      toast.warning('Please fill in at least street and city.');
+      return;
+    }
+    setSavingBilling(true);
+    try {
+      const { data } = await API.put('/auth/profile', { billingAddress });
+      if (data.success) {
+        toast.success('Billing address saved!');
+        setUser(prev => ({ ...prev, billingAddress }));
+        // Update localStorage userInfo
+        const stored = JSON.parse(localStorage.getItem('userInfo') || '{}');
+        localStorage.setItem('userInfo', JSON.stringify({ ...stored, billingAddress }));
+      }
+    } catch (err) {
+      toast.error('Failed to save billing address.');
+    } finally {
+      setSavingBilling(false);
+    }
+  };
+
   const sidebarItems = [
     { id: 'overview', icon: 'fa-th-large', label: 'Dashboard' },
     { id: 'orders', icon: 'fa-box', label: 'Your Orders' },
+    { id: 'billing', icon: 'fa-map-marker-alt', label: 'Billing Address' },
     { id: 'favorites', icon: 'fa-heart', label: 'Wish List' },
     { id: 'profile', icon: 'fa-user-edit', label: 'Account Settings' },
     { id: 'security', icon: 'fa-shield-alt', label: 'Login & Security' },
@@ -355,18 +399,30 @@ export default function UserDashboard() {
                           {order.status || 'Processing'}
                         </span>
                       </div>
-                      {order.items && order.items.length > 0 && (
-                        <div className="ud-order-card-items">
-                          {order.items.slice(0, 3).map((item, j) => (
-                            <div key={j} className="ud-order-item-mini">
-                              <span className="ud-order-item-name">{item.name || 'Product'}</span>
-                              <span className="ud-order-item-qty">x{item.quantity || 1}</span>
-                            </div>
-                          ))}
+                      {/* Tracking Timeline */}
+                      <div className="ud-order-tracking">
+                        {[
+                          { label: 'Order Placed', icon: 'fa-check-circle', done: true },
+                          { label: 'Processing', icon: 'fa-cog', done: ['Processing','Out for Delivery','Delivered'].includes(order.status) },
+                          { label: 'Out for Delivery', icon: 'fa-truck', done: ['Out for Delivery','Delivered'].includes(order.status) },
+                          { label: 'Delivered', icon: 'fa-home', done: order.status === 'Delivered' },
+                        ].map((step, si) => (
+                          <div key={si} className={`ud-tracking-step ${step.done ? 'done' : ''}`}>
+                            <div className="ud-tracking-dot"><i className={`fas ${step.icon}`}></i></div>
+                            <span>{step.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                      {order.deliveryEstimate && (
+                        <div className="ud-order-delivery-note">
+                          <i className="fas fa-calendar-alt mr-1"></i> Est. Delivery: <strong>{order.deliveryEstimate}</strong>
+                          {order.travelTime && order.travelTime !== 'N/A' && ` • ${order.travelTime} travel from store`}
                         </div>
                       )}
                       <div className="ud-order-card-footer">
-                        <Link to={`/order/${order._id}`} className="ud-btn ud-btn-outline-sm">View Order Details</Link>
+                        <span className="ud-order-tracking-status">
+                          <i className="fas fa-clock mr-1"></i> {order.trackingStatus || order.status || 'Delivery Pending'}
+                        </span>
                       </div>
                     </motion.div>
                   ))}
@@ -525,6 +581,78 @@ export default function UserDashboard() {
                     </div>
                   </div>
                 </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* ===== BILLING ADDRESS SECTION ===== */}
+          {activeSection === 'billing' && (
+            <motion.div key="billing" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} transition={{ duration: 0.25 }}>
+              <div className="ud-page-header">
+                <h2><i className="fas fa-map-marker-alt mr-2" style={{ color: '#f59e0b' }}></i> Billing Address</h2>
+                <p>This address is used for delivery estimation and checkout. Required before placing an order.</p>
+              </div>
+
+              {!user?.billingAddress?.street && (
+                <div className="ud-billing-alert">
+                  <i className="fas fa-exclamation-triangle mr-2"></i>
+                  You need to add a billing address before you can checkout.
+                </div>
+              )}
+
+              <div className="ud-billing-card">
+                <div className="ud-billing-form">
+                  <div className="ud-billing-field">
+                    <label><i className="fas fa-road mr-1"></i> Street Address</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 25 Main Street"
+                      value={billingAddress.street}
+                      onChange={e => setBillingAddress(p => ({ ...p, street: e.target.value }))}
+                      className="ud-billing-input"
+                    />
+                  </div>
+                  <div className="ud-billing-field">
+                    <label><i className="fas fa-city mr-1"></i> City</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Jaffna"
+                      value={billingAddress.city}
+                      onChange={e => setBillingAddress(p => ({ ...p, city: e.target.value }))}
+                      className="ud-billing-input"
+                    />
+                  </div>
+                  <div className="ud-billing-field">
+                    <label><i className="fas fa-mail-bulk mr-1"></i> Postal Code</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 40000"
+                      value={billingAddress.postalCode}
+                      onChange={e => setBillingAddress(p => ({ ...p, postalCode: e.target.value }))}
+                      className="ud-billing-input"
+                    />
+                  </div>
+                  <div className="ud-billing-field">
+                    <label><i className="fas fa-globe mr-1"></i> Country</label>
+                    <input
+                      type="text"
+                      placeholder="Sri Lanka"
+                      value={billingAddress.country}
+                      onChange={e => setBillingAddress(p => ({ ...p, country: e.target.value }))}
+                      className="ud-billing-input"
+                    />
+                  </div>
+                </div>
+
+                <motion.button
+                  onClick={saveBillingAddress}
+                  disabled={savingBilling}
+                  className="ud-btn ud-btn-primary mt-3"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  {savingBilling ? <><i className="fa fa-spinner fa-spin mr-2"></i>Saving...</> : <><i className="fas fa-save mr-2"></i>Save Address</>}
+                </motion.button>
               </div>
             </motion.div>
           )}

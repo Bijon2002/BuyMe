@@ -23,9 +23,9 @@ export default function Home() {
     const category = searchParams.get('category') || '';
     const sort = searchParams.get('sort') || '';
     const freeDelivery = searchParams.get('freeDelivery') || '';
-    let url = (process.env.REACT_APP_API_URL || "http://localhost:8000/api/v1") + '/products?limit=50';
-    if (keyword) url += `&keyword=${keyword}`;
-    if (category) url += `&category=${category}`;
+    let url = (process.env.REACT_APP_API_URL || "http://localhost:8000/api/v1") + '/products?limit=200';
+    if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
+    if (category) url += `&category=${encodeURIComponent(category)}`;
     if (sort) url += `&sort=${sort}`;
     if (freeDelivery) url += `&freeDelivery=${freeDelivery}`;
 
@@ -61,18 +61,13 @@ export default function Home() {
 
   // Brands marquee with corporate colors
   const brands = [
-    { name: 'Apple', color: '#555555' },
-    { name: 'Samsung', color: '#1428a0' },
-    { name: 'Sony', color: '#000000' },
-    { name: 'Nike', color: '#e7352e' },
-    { name: 'Adidas', color: '#000000' },
-    { name: 'Bose', color: '#000000' },
-    { name: 'Dell', color: '#0076ce' },
-    { name: 'Logitech', color: '#00b8fc' },
-    { name: 'Canon', color: '#cc0000' },
-    { name: 'Dyson', color: '#3e0054' },
-    { name: 'Gucci', color: '#000000' },
-    { name: 'Prada', color: '#000000' }
+    { name: 'Apple', icon: 'fab fa-apple', color: '#555' },
+    { name: 'Amazon', icon: 'fab fa-amazon', color: '#ff9900' },
+    { name: 'Microsoft', icon: 'fab fa-windows', color: '#00a4ef' },
+    { name: 'PlayStation', icon: 'fab fa-playstation', color: '#003791' },
+    { name: 'Google', icon: 'fab fa-google', color: '#ea4335' },
+    { name: 'Samsung', icon: 'fab fa-android', color: '#3DDC84' },
+    { name: 'Nike', icon: 'fas fa-running', color: '#111' }
   ];
 
   return (
@@ -91,10 +86,11 @@ export default function Home() {
             </div>
             <div className="brands-marquee-container">
               <div className="brands-track">
-                {[...brands, ...brands].map((brand, i) => (
-                  <span key={i} className="brand-item-logo" style={{ color: brand.color }}>
-                    {brand.name}
-                  </span>
+                {[...brands, ...brands, ...brands].map((brand, i) => (
+                  <div key={i} className="brand-item-logo" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: brand.color }}>
+                    <i className={brand.icon} style={{ fontSize: '1.8rem' }}></i>
+                    <span style={{ fontSize: '1.4rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.5px' }}>{brand.name}</span>
+                  </div>
                 ))}
               </div>
             </div>
@@ -103,37 +99,44 @@ export default function Home() {
       )}
 
       {/* Products Row Section */}
-      <div className="container pb-5 pt-4" style={{ maxWidth: '1280px', margin: '0 auto' }}>
-        {categories.length > 0 && (
+      <div className="container-fluid pb-5 pt-4 px-md-5" style={{ margin: '0 auto' }}>
+        {(categories.length > 0 || products.length > 0) && (
           <section className="mb-4" data-aos="fade-up">
-            <div className="d-flex align-items-center justify-content-between mb-4">
-              <h3 className="section-title-modern mb-0">Explore Collections</h3>
-              {(activeCategory || searchKeyword) && (
-                <Link to="/" className="btn-modern" style={{ background: 'rgba(15,23,42,0.05)', color: 'var(--primary)', fontSize: '0.8rem', padding: '0.4rem 1rem', borderRadius: '8px' }}>
-                  <i className="fas fa-times mr-2"></i> Clear Selection
-                </Link>
-              )}
-            </div>
+            <div className="category-sticky-bar">
+              <div className="d-flex align-items-center justify-content-between mb-3">
+                <h3 className="section-title-modern mb-0">Explore Collections</h3>
+                {(activeCategory || searchKeyword) && (
+                  <Link to="/" className="btn-modern" style={{ background: 'rgba(15,23,42,0.05)', color: 'var(--primary)', fontSize: '0.8rem', padding: '0.4rem 1rem', borderRadius: '8px' }}>
+                    <i className="fas fa-times mr-2"></i> Clear Selection
+                  </Link>
+                )}
+              </div>
             
-            <div className="category-scroll-container custom-scrollbar">
-              {categories.map((cat, i) => (
-                <Link 
-                  key={cat._id} 
-                  to={`/?category=${encodeURIComponent(cat.name)}`}
-                  style={{ textDecoration: 'none' }}
-                >
-                  <motion.div 
-                    className={`category-item-pill ${activeCategory === cat.name ? 'active' : ''}`}
-                    whileHover={{ y: -4, scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    data-aos="fade-up"
-                    data-aos-delay={i * 50}
+              <div className="category-scroll-container custom-scrollbar">
+                {(categories.length > 0 ? categories : [
+                  { _id: '1', name: 'Electronics', icon: 'fas fa-laptop' },
+                  { _id: '2', name: 'Accessories', icon: 'fas fa-headphones' },
+                  { _id: '3', name: 'Gaming', icon: 'fas fa-gamepad' },
+                  { _id: '4', name: 'Cameras', icon: 'fas fa-camera' },
+                  { _id: '5', name: 'Fashion', icon: 'fas fa-tshirt' },
+                  { _id: '6', name: 'Home Appliances', icon: 'fas fa-blender' }
+                ]).map((cat, i) => (
+                  <Link 
+                    key={cat._id || i} 
+                    to={`/?category=${encodeURIComponent(cat.name)}`}
+                    style={{ textDecoration: 'none' }}
                   >
-                    <i className={cat.icon || 'fas fa-tag'}></i>
-                    {cat.name}
-                  </motion.div>
-                </Link>
-              ))}
+                    <motion.div 
+                      className={`category-item-pill ${activeCategory === cat.name ? 'active' : ''}`}
+                      whileHover={{ y: -4, scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <i className={cat.icon || 'fas fa-tag'}></i>
+                      {cat.name}
+                    </motion.div>
+                  </Link>
+                ))}
+              </div>
             </div>
           </section>
         )}
@@ -147,9 +150,9 @@ export default function Home() {
                 View All <i className="fas fa-arrow-right ml-1"></i>
               </Link>
             </div>
-            <div className="row g-3 d-none d-md-flex">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', alignItems: 'stretch' }} className="d-none d-md-grid">
               {products.slice(0, 4).map((product) => (
-                <div key={product._id} className="col-md-6 col-lg-3">
+                <div key={product._id} style={{ display: 'flex', flexDirection: 'column' }}>
                   <ProductCard product={product} />
                 </div>
               ))}
@@ -217,13 +220,13 @@ export default function Home() {
           </section>
         )}
 
-        {/* 6. Main Product Content Area (Rows/Grid) */}
+        {/* 6. Main Product Content Area */}
         <section className="mb-4">
-          <div className="row">
-            
-            {/* Sidebar Filters */}
-            <div className="col-lg-3 d-none d-lg-block">
-               <div className="card-premium p-4 sticky-top" style={{ top: '100px', zIndex: 1, border: '1px solid rgba(0,0,0,0.05)' }}>
+          <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
+
+            {/* Sidebar Filters - fixed width */}
+            <div style={{ width: '260px', flexShrink: 0 }} className="d-none d-lg-block">
+               <div className="card-premium p-4 sticky-top" style={{ top: '110px', zIndex: 10, border: '1px solid rgba(0,0,0,0.05)' }}>
                  <div className="d-flex align-items-center justify-content-between mb-4">
                      <h4 style={{ fontWeight: 800, marginBottom: 0 }}>Filters</h4>
                      {hasFilterActive && (
@@ -270,10 +273,10 @@ export default function Home() {
                    </div>
                  </div>
                </div>
-            </div>
+            </div>{/* end sidebar */}
 
-            {/* Main Products Grid */}
-            <div className="col-12 col-lg-9">
+            {/* Main Products Grid - takes all remaining space */}
+            <div style={{ flex: 1, minWidth: 0 }}>
                 {loading ? (
                   <div className="row g-4">
                     {[...Array(8)].map((_, i) => (
@@ -292,16 +295,21 @@ export default function Home() {
                     <button onClick={() => setSearchParams({})} className="btn-modern btn-primary-modern">Clear All Filters</button>
                   </div>
                 ) : hasFilterActive ? (
-                  /* Flat Grid for active searches & filters */
-                  <div className="row g-4" data-aos="fade-up">
-                    <div className="col-12 mb-2">
-                        <h5 style={{ fontWeight: 800, color: 'var(--text-main)' }}>Showing {products.length} Results</h5>
+                  /* Flat Grid for active searches & filters - show ALL matching products */
+                  <div data-aos="fade-up">
+                    <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <h5 style={{ fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                        {activeCategory && <><i className="fas fa-tag" style={{ color: 'var(--secondary)', marginRight: '0.5rem' }} />{activeCategory}: </>}
+                        {products.length} Product{products.length !== 1 ? 's' : ''} Found
+                      </h5>
                     </div>
-                    {products.map(product => (
-                      <div key={product._id} className="col-6 col-md-4 col-lg-4">
-                        <ProductCard product={product} />
-                      </div>
-                    ))}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', alignItems: 'stretch' }}>
+                      {products.map((product, idx) => (
+                        <div key={product._id} style={{ display: 'flex', flexDirection: 'column' }}>
+                          <ProductCard product={product} index={idx} />
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ) : (
                   /* Grouped Grid for landing page default view */
@@ -319,9 +327,9 @@ export default function Home() {
                               View All <i className="fas fa-arrow-right ml-1"></i>
                             </Link>
                           </div>
-                          <div className="row g-3">
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', alignItems: 'stretch' }}>
                             {catProducts.slice(0, 4).map((product) => (
-                              <div key={product._id} className="col-6 col-md-4 col-lg-3">
+                              <div key={product._id} style={{ display: 'flex', flexDirection: 'column' }}>
                                 <ProductCard product={product} />
                               </div>
                             ))}
@@ -331,9 +339,9 @@ export default function Home() {
                     })}
                   </div>
                 )}
-            </div>
+            </div>{/* end main products */}
 
-          </div>
+          </div>{/* end flex container */}
         </section>
       </div>
     </>

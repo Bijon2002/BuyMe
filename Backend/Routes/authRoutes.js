@@ -6,7 +6,8 @@ const {
   updateUserProfile,
   refreshToken,
   logout,
-  toggleFavorite
+  toggleFavorite,
+  googleLogin
 } = require('../Controller/authController');
 const { isAuthenticated } = require('../middleware/authMiddleware');
 const router = express.Router();
@@ -14,6 +15,7 @@ const router = express.Router();
 // Public routes
 router.post('/register', registerUser);
 router.post('/login', loginUser);
+router.post('/google', googleLogin);
 router.post('/refresh-token', refreshToken);
 router.post('/logout', logout);
 

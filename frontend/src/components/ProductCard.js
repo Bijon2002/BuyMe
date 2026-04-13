@@ -33,10 +33,11 @@ export default function ProductCard({ product, index = 0 }) {
   const badge = getBadge();
 
   return (
-    <div data-aos="fade-up" data-aos-delay={Math.min(index * 80, 400)} data-aos-duration="600">
+    <div data-aos="fade-up" data-aos-delay={Math.min(index * 80, 400)} data-aos-duration="600" style={{ height: '100%' }}>
       <motion.div 
           className="card-premium product-card d-flex flex-column"
-          whileHover={{ y: -10 }}
+          style={{ height: '100%' }}
+          whileHover={{ y: -6 }}
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
       >
         <div className="product-image-container position-relative">

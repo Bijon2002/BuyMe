@@ -3,12 +3,12 @@ const productModel = require('../models/productModel');
 
 /**
  * @desc    Create new order
- * @route   POST /api/v1/order
+ * @route   POST /api/v1/orders
  * @access  Authenticated User
  */
 exports.createOrder = async (req, res) => {
   try {
-    const CartItems = req.body.CartItems;
+    const { CartItems, billingAddress, deliveryEstimate, travelTime, paymentId } = req.body;
 
     const amount = CartItems.reduce(
       (acc, item) => acc + item.product.price * item.qty,
@@ -18,15 +18,20 @@ exports.createOrder = async (req, res) => {
     const order = await orderModel.create({
       CartItems,
       amount,
-      status: 'pending',
-      user: req.user ? req.user._id : null, // Support guest checkout
+      status: 'Delivery Pending',
+      trackingStatus: 'Delivery Pending',
+      user: req.user ? req.user._id : null,
+      billingAddress: billingAddress || {},
+      deliveryEstimate: deliveryEstimate || '',
+      travelTime: travelTime || '',
+      paymentMethod: 'stripe',
+      paymentId: paymentId || '',
       createdAt: Date.now()
     });
 
     // Update product stock
     for (const item of CartItems) {
       const product = await productModel.findById(item.product._id);
-
       if (product) {
         product.stock -= item.qty;
         await product.save();
@@ -52,7 +57,7 @@ exports.createOrder = async (req, res) => {
  */
 exports.myOrders = async (req, res) => {
   try {
-    const orders = await orderModel.find({ user: req.user._id });
+    const orders = await orderModel.find({ user: req.user._id }).sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -73,7 +78,7 @@ exports.myOrders = async (req, res) => {
  */
 exports.getAllOrders = async (req, res) => {
   try {
-    const orders = await orderModel.find();
+    const orders = await orderModel.find().sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -105,6 +110,7 @@ exports.updateOrderStatus = async (req, res) => {
     }
 
     order.status = req.body.status;
+    order.trackingStatus = req.body.status;
     await order.save();
 
     res.status(200).json({

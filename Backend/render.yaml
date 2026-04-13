@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: buyme-backend
+    env: node
+    region: singapore
+    plan: free
+    buildCommand: npm install
+    startCommand: node app.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DB_URL
+        fromDatabase:
+          name: buyme-mongo
+          property: connectionString
+      - key: JWT_SECRET
+        sync: false
+      - key: REFRESH_TOKEN_SECRET
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+      - key: HUGGINGFACE_API_KEY
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
